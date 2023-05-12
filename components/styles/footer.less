@@ -1,0 +1,123 @@
+@import "../../index.less";
+
+.footer {
+    position: relative;
+    display: flex;
+    width: 100%;
+    margin: 0px 12px;
+    // margin-bottom: 10px;
+    margin-bottom: @title-bar-height + 10px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    text-decoration: none;
+    cursor: default;
+}
+
+.footer-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    justify-content: center;
+    align-items: flex-start
+}
+
+.footer-text {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 17px;
+    text-decoration: none;
+    cursor: text;
+}
+
+.footer-text-2 {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--patternBorder2);
+    font-size: 17px;
+    text-decoration: none;
+    cursor: text;
+}
+
+.footer-text-3 {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #8528ff;
+    font-size: 17px;
+    text-decoration: none;
+    cursor: text;
+}
+
+.footer-text-4 {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #2873ff;
+    font-size: 17px;
+    text-decoration: none;
+    cursor: text;
+}
+
+.footer-button {
+    margin-right: 20px;
+    border: 2px solid black;
+    background-color: var(--buttonBG);
+    border: none;
+    padding: 0px 3px;
+    display: flex;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 17px;
+    text-align: center;
+    color: white;
+    &:hover {
+        color: black;
+        cursor: pointer;
+    }
+}
+
+.footer-button-hover {
+    color: white;
+    &:hover {
+        color: black;
+        cursor: pointer;
+    }
+}
+
+.footer-button-text {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 17px;
+    text-align: center;
+}
+
+.windows {
+    background-color: #314cff;
+}
+
+.macos {
+    background-color: #ff3dc3;
+}
+
+.linux {
+    background-color: #6f43fb;
+}
+
+.recombine-gif {
+    margin-top: 5px;
+    background-color: #ba2af3;
+}
+
+@media screen and (max-width: 700px) {
+    .footer {
+        width: 100%;
+    }
+}

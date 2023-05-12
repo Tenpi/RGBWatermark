@@ -1,0 +1,25 @@
+@import "../../index.less";
+
+.navbar {
+    position: relative;
+    z-index: 1500;
+    display: flex;
+    width: 100%;
+    height: @navbar-height;
+    justify-content: flex-start;
+    padding: 0;
+}
+
+.navbar-item {
+    height: 33px;
+    width: auto;
+    margin-left: 20px;
+    margin-top: 5px;
+    background-color: var(--navbarButtonBG);
+    border: 1px solid black;
+    &:hover {
+        cursor: pointer;
+        filter: brightness(120%);
+        border: 1px solid var(--navbarButtonBorder);
+    }
+}

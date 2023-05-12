@@ -1,0 +1,141 @@
+@import "../../index.less";
+
+.image-component {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: max-content;
+    margin: 15px;
+    justify-content: center;
+}
+
+.image-container {
+    display: flex;
+    justify-content: flex-start;
+    width: max-content;
+}
+
+
+.image {
+    width: auto;
+    height: auto;
+    max-width: 550px;
+    max-height: 400px;
+}
+
+.image-buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.image-button {
+    margin-top: 10px;
+    margin-left: 20px;
+    border: 2px solid black;
+    background-color: var(--buttonBG2);
+    border: none;
+    padding: 1px 5px;
+    display: flex;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 16px;
+    text-align: center;
+    color: white;
+    &:hover {
+        color: black;
+        cursor: pointer;
+    }
+}
+
+.image-button-icon {
+    width: auto;
+    height: 17px;
+    margin-top: 6px;
+    &:hover {
+        filter: brightness(120%);
+        cursor: pointer;
+    }
+}
+
+.image-output-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.image-output-text {
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none;
+    font-size: 17px;
+    text-align: center;
+    color: var(--text);
+}
+
+.image-output-text-mini {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 16px;
+    margin-top: 1px;
+    width: 21px;
+    margin-left: 5px;
+    text-decoration: none;
+}
+
+.image-output-input {
+    margin-top: 3px;
+    height: 35px;
+    width: 55px;
+    background-color: transparent;
+    border: none;
+    font-family: Arial, sans-serif;
+    font-size: 19px;
+    color: var(--text);
+    padding: 5px;
+}
+
+.image-output-slider {
+    display: flex;
+    width: 150px;
+    height: 100%;
+    margin-left: 10px;
+    margin-right: 10px;
+    align-items: center;
+}
+
+.image-output-slider-track {
+    display: flex;
+    height: 6px;
+    background-color: var(--sliderBG);
+}
+
+.image-output-slider-track.image-output-slider-track-1 {
+    background-color: var(--sliderBG);
+}
+
+.image-output-slider-thumb {
+    opacity: 1;
+    display: flex;
+    margin-top: -1px;
+    // border-radius: 10;
+    height: 7px;
+    width: 7px;
+    background-color: var(--text);
+    &:active {
+        outline: none;
+    }
+    &:focus {
+        outline: none;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .image {
+        width: 400px;
+        height: auto;
+    }
+}
