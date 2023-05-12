@@ -119,7 +119,7 @@ const App = () => {
   const getAttack = () => {
     if (attackMode === "rainbow watermarks") {
         return (<><RainbowOptions/><RainbowImage/></>)
-    } else if (attackMode === "pointification") {
+    } else if (attackMode === "pointifaction") {
         return (<PointImage/>)
     }
   }
