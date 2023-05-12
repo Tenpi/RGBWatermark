@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
@@ -59,7 +60,7 @@ const Image: React.FunctionComponent = (props) => {
         const height = Math.floor((destSize / 100) * img.height)
         return {width, height}
     }
-    
+
     const draw = (gifPos: number, renderWidth?: boolean) => {
         if (!ref.current || !img) return ""
         const refCtx = ref.current.getContext("2d")!
