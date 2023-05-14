@@ -5,3 +5,4 @@ build
 .DS_Store
 components/PointImage.tsx
 components/RainbowImage.tsx
+components/PixelShiftImage.tsx

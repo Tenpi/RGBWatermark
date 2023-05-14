@@ -95,9 +95,13 @@ const Footer: React.FunctionComponent = (props) => {
     return (
         <div className="footer">
             <div className="footer-container">
-                {attackMode === "pointifaction" ?
+                {attackMode === "pointifiction" ?
                 <div className="footer-row">
-                    <span className="footer-text-4">Pointifaction deletes pixels in the image to make the picture look like random noise to the AI. Make sure that you set the spacing high enough so that it can't be removed with gaussian blur. Randomness looks very bad, but it might make the removal even harder.</span>
+                    <span className="footer-text-4">Pointifiction deletes pixels in the image to make the picture look like random noise to the AI. Make sure that you set the spacing high enough so that it can't be removed with gaussian blur. Randomness looks very bad, but it might make the removal even harder.</span>
+                </div> : null}
+                {attackMode === "pixel shift" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Pixel shifting shifts the pixels in the image horizontally and vertically, breaking continuity. This significantly degrades quality and will make the output produce blocky images.</span>
                 </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">

@@ -7,7 +7,8 @@ import functions from "../structures/Functions"
 import Slider from "react-slider"
 import "./styles/navbar.less"
 
-import pointifaction from "../assets/icons/pointifaction.png"
+import pixelshift from "../assets/icons/pixelshift.png"
+import pointifiction from "../assets/icons/pointifiction.png"
 import rainbowWatermarks from "../assets/icons/rainbowwatermarks.png"
 
 const NavBar: React.FunctionComponent = (props) => {
@@ -28,7 +29,8 @@ const NavBar: React.FunctionComponent = (props) => {
     return (
         <div className="navbar">
             <img className="navbar-item" src={rainbowWatermarks} onClick={() => setAttackMode("rainbow watermarks")}/>
-            <img className="navbar-item" src={pointifaction} onClick={() => setAttackMode("pointifaction")}/>
+            <img className="navbar-item" src={pointifiction} onClick={() => setAttackMode("pointifiction")}/>
+            <img className="navbar-item" src={pixelshift} onClick={() => setAttackMode("pixel shift")}/>
         </div>
     )
 }

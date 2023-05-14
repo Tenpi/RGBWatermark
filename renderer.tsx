@@ -8,6 +8,7 @@ import Footer from "./components/Footer"
 import VersionDialog from "./components/VersionDialog"
 import RainbowOptions from "./components/RainbowOptions"
 import RainbowImage from "./components/RainbowImage"
+import PixelShiftImage from "./components/PixelShiftImage"
 import PointImage from "./components/PointImage"
 import "./index.less"
 
@@ -46,6 +47,8 @@ export const PointBrightnessContext = React.createContext<any>(null)
 export const PointContrastContext = React.createContext<any>(null)
 export const PointMethodContext = React.createContext<any>(null)
 export const PointInvertContext = React.createContext<any>(null)
+export const PixelShiftContext = React.createContext<any>(null)
+export const PixelShiftSizeContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -111,6 +114,8 @@ const App = () => {
   const [pointSize, setPointSize] = useState(1)
   const [pointMethod, setPointMethod] = useState("uniform")
   const [pointInvert, setPointInvert] = useState(false)
+  const [pixelShift, setPixelShift] = useState(0)
+  const [pixelShiftSize, setPixelShiftSize] = useState(13)
   
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -119,13 +124,17 @@ const App = () => {
   const getAttack = () => {
     if (attackMode === "rainbow watermarks") {
         return (<><RainbowOptions/><RainbowImage/></>)
-    } else if (attackMode === "pointifaction") {
+    } else if (attackMode === "pointifiction") {
         return (<PointImage/>)
-    }
+    } else if (attackMode === "pixel shift") {
+      return (<PixelShiftImage/>)
+  }
   }
 
   return (
     <main className="app">
+            <PixelShiftSizeContext.Provider value={{pixelShiftSize, setPixelShiftSize}}>
+            <PixelShiftContext.Provider value={{pixelShift, setPixelShift}}>
             <PointInvertContext.Provider value={{pointInvert, setPointInvert}}>
             <PointMethodContext.Provider value={{pointMethod, setPointMethod}}>
             <PointSizeContext.Provider value={{pointSize, setPointSize}}>
@@ -203,6 +212,8 @@ const App = () => {
             </PointSizeContext.Provider>
             </PointMethodContext.Provider>
             </PointInvertContext.Provider>
+            </PixelShiftContext.Provider>
+            </PixelShiftSizeContext.Provider>
     </main>
   )
 }
