@@ -95,7 +95,7 @@ if (!singleLock) {
   })
 
   app.on("ready", () => {
-    window = new BrowserWindow({width: 800, height: 650, minWidth: 720, minHeight: 450, frame: false, backgroundColor: "#0f142a", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false}})
+    window = new BrowserWindow({width: 870, height: 770, minWidth: 720, minHeight: 450, frame: false, backgroundColor: "#0f142a", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false}})
     window.loadFile(path.join(__dirname, "index.html"))
     window.removeMenu()
     require("@electron/remote/main").enable(window.webContents)

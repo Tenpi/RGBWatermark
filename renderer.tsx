@@ -10,6 +10,8 @@ import RainbowOptions from "./components/RainbowOptions"
 import RainbowImage from "./components/RainbowImage"
 import PixelShiftImage from "./components/PixelShiftImage"
 import PointImage from "./components/PointImage"
+import HighContrastImage from "./components/HighContrastImage"
+import PixelationImage from "./components/PixelationImage"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -49,6 +51,16 @@ export const PointMethodContext = React.createContext<any>(null)
 export const PointInvertContext = React.createContext<any>(null)
 export const PixelShiftContext = React.createContext<any>(null)
 export const PixelShiftSizeContext = React.createContext<any>(null)
+export const PixelShiftDirectionContext = React.createContext<any>(null)
+export const HighContrastStrengthContext = React.createContext<any>(null)
+export const HighContrastSizeContext = React.createContext<any>(null)
+export const HighContrastBrightnessContext = React.createContext<any>(null)
+export const HighContrastContrastContext = React.createContext<any>(null)
+export const HighContrastInvertContext = React.createContext<any>(null)
+export const HighContrastSpacingContext = React.createContext<any>(null)
+export const PixelationStrengthContext = React.createContext<any>(null)
+export const PixelationSizeContext = React.createContext<any>(null)
+export const PointShiftContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -116,6 +128,16 @@ const App = () => {
   const [pointInvert, setPointInvert] = useState(false)
   const [pixelShift, setPixelShift] = useState(0)
   const [pixelShiftSize, setPixelShiftSize] = useState(13)
+  const [pixelShiftDirection, setPixelShiftDirection] = useState("xy")
+  const [highContrastStrength, setHighContrastStrength] = useState(0)
+  const [highContrastSize, setHighContrastSize] = useState(1)
+  const [highContrastBrightness, setHighContrastBrightness] = useState(0)
+  const [highContrastContrast, setHighContrastContrast] = useState(0)
+  const [highContrastInvert, setHighContrastInvert] = useState(false)
+  const [highContrastSpacing, setHighContrastSpacing] = useState(1)
+  const [pixelationStrength, setPixelationStrength] = useState(0)
+  const [pixelationSize, setPixelationSize] = useState(1)
+  const [pointShift, setPointShift] = useState(0)
   
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -128,11 +150,25 @@ const App = () => {
         return (<PointImage/>)
     } else if (attackMode === "pixel shift") {
       return (<PixelShiftImage/>)
-  }
+    } else if (attackMode === "high contrast") {
+      return (<HighContrastImage/>)
+    } else if (attackMode === "pixelation") {
+        return (<PixelationImage/>)
+    }
   }
 
   return (
     <main className="app">
+            <PointShiftContext.Provider value={{pointShift, setPointShift}}>
+            <PixelationSizeContext.Provider value={{pixelationSize, setPixelationSize}}>
+            <PixelationStrengthContext.Provider value={{pixelationStrength, setPixelationStrength}}>
+            <HighContrastSpacingContext.Provider value={{highContrastSpacing, setHighContrastSpacing}}>
+            <HighContrastInvertContext.Provider value={{highContrastInvert, setHighContrastInvert}}>
+            <HighContrastContrastContext.Provider value={{highContrastContrast, setHighContrastContrast}}>
+            <HighContrastBrightnessContext.Provider value={{highContrastBrightness, setHighContrastBrightness}}>
+            <HighContrastSizeContext.Provider value={{highContrastSize, setHighContrastSize}}>
+            <HighContrastStrengthContext.Provider value={{highContrastStrength, setHighContrastStrength}}>
+            <PixelShiftDirectionContext.Provider value={{pixelShiftDirection, setPixelShiftDirection}}>
             <PixelShiftSizeContext.Provider value={{pixelShiftSize, setPixelShiftSize}}>
             <PixelShiftContext.Provider value={{pixelShift, setPixelShift}}>
             <PointInvertContext.Provider value={{pointInvert, setPointInvert}}>
@@ -214,6 +250,16 @@ const App = () => {
             </PointInvertContext.Provider>
             </PixelShiftContext.Provider>
             </PixelShiftSizeContext.Provider>
+            </PixelShiftDirectionContext.Provider>
+            </HighContrastStrengthContext.Provider>
+            </HighContrastSizeContext.Provider>
+            </HighContrastBrightnessContext.Provider>
+            </HighContrastContrastContext.Provider>
+            </HighContrastInvertContext.Provider>
+            </HighContrastSpacingContext.Provider>
+            </PixelationStrengthContext.Provider>
+            </PixelationSizeContext.Provider>
+            </PointShiftContext.Provider>
     </main>
   )
 }

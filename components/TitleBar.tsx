@@ -1,6 +1,6 @@
 import {ipcRenderer} from "electron"
 import {getCurrentWindow, shell} from "@electron/remote"
-import {StopAnimationContext} from "../renderer"
+import {StopAnimationContext, ImageContext} from "../renderer"
 import React, {useEffect, useState, useContext, useRef} from "react"
 import closeButtonHover from "../assets/icons/closeButton-hover.png"
 import closeButton from "../assets/icons/closeButton.png"
@@ -13,6 +13,7 @@ import updateButtonHover from "../assets/icons/updateButton-hover.png"
 import updateButton from "../assets/icons/updateButton.png"
 import starButtonHover from "../assets/icons/starButton-hover.png"
 import starButton from "../assets/icons/starButton.png"
+import placeholder from "../assets/images/placeholder.png"
 import pack from "../package.json"
 import "./styles/titlebar.less"
 
@@ -24,11 +25,16 @@ const TitleBar: React.FunctionComponent = (props) => {
     const [hoverReload, setHoverReload] = useState(false)
     const [hoverStar, setHoverStar] = useState(false)
     const {stopAnimations, setStopAnimations} = useContext(StopAnimationContext)
+    const {image, setImage} = useContext(ImageContext)
     const ref = useRef<HTMLCanvasElement>(null)
 
     useEffect(() => {
         ipcRenderer.invoke("check-for-updates", true)
     }, [])
+
+    useEffect(() => {
+        if (!image) setImage(placeholder)
+    }, [image])
 
     const minimize = () => {
         getCurrentWindow().minimize()

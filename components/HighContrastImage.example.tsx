@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
-import {EnableDragContext, MobileContext, ImageContext, OutputSizeContext, ImageNameContext, PointInvertContext, BrightnessContext, PointSizeContext, PointSpacingContext, PointRandomnessContext, PointBrightnessContext, PointContrastContext, ReverseContext, PointMethodContext, patterns} from "../Context"
+import {EnableDragContext, MobileContext, ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, HighContrastSizeContext, HighContrastStrengthContext, HighContrastBrightnessContext, HighContrastContrastContext, HighContrastInvertContext, patterns} from "../Context"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import fileType from "magic-bytes.js"
@@ -17,23 +17,20 @@ import "./styles/pointimage.less"
 
 let gifPos = 0
 
-const PointImage: React.FunctionComponent = (props) => {
+const HighContrastImage: React.FunctionComponent = (props) => {
     const {enableDrag, setEnableDrag} = useContext(EnableDragContext)
     const {mobile, setMobile} = useContext(MobileContext)
     const {image, setImage} = useContext(ImageContext)
     const {imageName, setImageName} = useContext(ImageNameContext)
     const {outputSize, setOutputSize} = useContext(OutputSizeContext)
-    const {pointSpacing, setPointSpacing} = useContext(PointSpacingContext)
-    const {pointRandomness, setPointRandomness} = useContext(PointRandomnessContext)
-    const {pointBrightness, setPointBrightness} = useContext(PointBrightnessContext)
-    const {pointContrast, setPointContrast} = useContext(PointContrastContext)
-    const {pointSize, setPointSize} = useContext(PointSizeContext)
-    const {pointMethod, setPointMethod} = useContext(PointMethodContext)
-    const {pointInvert, setPointInvert} = useContext(PointInvertContext)
     const {reverse, setReverse} = useContext(ReverseContext)
+    const {highContrastStrength, setHighContrastStrength} = useContext(HighContrastStrengthContext)
+    const {highContrastSize, setHighContrastSize} = useContext(HighContrastSizeContext)
+    const {highContrastBrightness, setHighContrastBrightness} = useContext(HighContrastBrightnessContext)
+    const {highContrastContrast, setHighContrastContrast} = useContext(HighContrastContrastContext)
+    const {highContrastInvert, setHighContrastInvert} = useContext(HighContrastInvertContext)
     const [gifData, setGIFData] = useState(null) as any
     const [img, setImg] = useState(null as HTMLImageElement | null)
-    const [seed, setSeed] = useState(0)
     const ref = useRef<HTMLCanvasElement>(null)
     const history = useHistory()
 
@@ -110,7 +107,7 @@ const PointImage: React.FunctionComponent = (props) => {
         refCtx.restore()
     }
 
-    const applyPointifiction = (outputType?: string) => {
+    const applyHighContrast = (outputType?: string) => {
     }
 
     const loadImg = () => {
@@ -156,7 +153,7 @@ const PointImage: React.FunctionComponent = (props) => {
         let timeout = null as any
         const animationLoop = async () => {
             draw(gifPos)
-            applyPointifiction()
+            applyHighContrast()
             if (gifData) {
                 if (reverse) {
                     gifPos--
@@ -178,22 +175,18 @@ const PointImage: React.FunctionComponent = (props) => {
         return () => {
             clearTimeout(timeout)
         }
-    }, [img, pointSize, pointSpacing, pointRandomness, pointBrightness, pointContrast, pointMethod, pointInvert, seed, gifData])
-
-    useEffect(() => {
-        setSeed(Math.floor(Math.random() * 1000))
-    }, [pointRandomness])
+    }, [img, highContrastSize, highContrastStrength, highContrastBrightness, highContrastContrast, highContrastInvert, gifData])
 
     const jpg = async () => {
         draw(0, true)
-        const img = applyPointifiction("image/jpeg") as string
-        functions.download(`${path.basename(imageName, path.extname(imageName))}_pointified.jpg`, img)
+        const img = applyHighContrast("image/jpeg") as string
+        functions.download(`${path.basename(imageName, path.extname(imageName))}_highcontrast.jpg`, img)
     }
 
     const png = async () => {
         draw(0, true)
-        const img = applyPointifiction("image/png") as string
-        functions.download(`${path.basename(imageName, path.extname(imageName))}_pointified.png`, img)
+        const img = applyHighContrast("image/png") as string
+        functions.download(`${path.basename(imageName, path.extname(imageName))}_highcontrast.png`, img)
     }
 
     const zip = async () => {
@@ -202,17 +195,17 @@ const PointImage: React.FunctionComponent = (props) => {
         if (gifData) {
             for (let i = 0; i < gifData.length; i++) {
                 draw(i, true)
-                const img = applyPointifiction("image/png") as string
+                const img = applyHighContrast("image/png") as string
                 const data = await fetch(img).then((r) => r.arrayBuffer())
-                zip.file(`${path.basename(imageName, path.extname(imageName))}_pointified ${i + 1}.png`, data, {binary: true})
+                zip.file(`${path.basename(imageName, path.extname(imageName))}_highcontrast ${i + 1}.png`, data, {binary: true})
             }
         } else {
             draw(0, true)
-            const img = applyPointifiction("image/png") as string
+            const img = applyHighContrast("image/png") as string
             const data = await fetch(img).then((r) => r.arrayBuffer())
-            zip.file(`${path.basename(imageName, path.extname(imageName))}_pointified 1.png`, data, {binary: true})
+            zip.file(`${path.basename(imageName, path.extname(imageName))}_highcontrast 1.png`, data, {binary: true})
         }
-        const filename = `${path.basename(imageName, path.extname(imageName))}_pointified.zip`
+        const filename = `${path.basename(imageName, path.extname(imageName))}_highcontrast.zip`
         const blob = await zip.generateAsync({type: "blob"})
         const url = window.URL.createObjectURL(blob)
         functions.download(filename, url)
@@ -226,14 +219,14 @@ const PointImage: React.FunctionComponent = (props) => {
         if (gifData) {
             for (let i = 0; i < gifData.length; i++) {
                 draw(i, true)
-                const frame = applyPointifiction("buffer") as ArrayBuffer
+                const frame = applyHighContrast("buffer") as ArrayBuffer
                 frames.push(frame)
                 let delay = gifData[i].delay
                 delays.push(delay)
             }
         } else {
             draw(0, true)
-            const frame = applyPointifiction("buffer") as ArrayBuffer
+            const frame = applyHighContrast("buffer") as ArrayBuffer
             frames.push(frame)
             let delay = 60
             delays.push(delay)
@@ -242,46 +235,38 @@ const PointImage: React.FunctionComponent = (props) => {
         const buffer = await functions.encodeGIF(frames, delays, dimensions.width, dimensions.height, {transparentColor: "#000000"})
         const blob = new Blob([buffer])
         const url = window.URL.createObjectURL(blob)
-        functions.download(`${path.basename(imageName, path.extname(imageName))}_pointified.gif`, url)
+        functions.download(`${path.basename(imageName, path.extname(imageName))}_highcontrast.gif`, url)
         window.URL.revokeObjectURL(url)
     }
 
     const reset = () => {
-        setPointSpacing(0)
-        setPointSize(1)
-        setPointRandomness(0)
-        setPointBrightness(0)
-        setPointContrast(0)
-        setPointMethod("uniform")
-        setPointInvert(false)
+        setHighContrastSize(1)
+        setHighContrastStrength(0)
+        setHighContrastBrightness(0)
+        setHighContrastContrast(0)
+        setHighContrastInvert(false)
     }
 
     useEffect(() => {
-        const savedPointSize = localStorage.getItem("pointSize")
-        if (savedPointSize) setPointSize(Number(savedPointSize))
-        const savedPointSpacing = localStorage.getItem("pointSpacing")
-        if (savedPointSpacing) setPointSpacing(Number(savedPointSpacing))
-        const savedPointRandomness = localStorage.getItem("pointRandomness")
-        if (savedPointRandomness) setPointRandomness(Number(savedPointRandomness))
-        const savedPointBrightness = localStorage.getItem("pointBrightness")
-        if (savedPointBrightness) setPointBrightness(Number(savedPointBrightness))
-        const savedPointContrast = localStorage.getItem("pointContrast")
-        if (savedPointContrast) setPointContrast(Number(savedPointContrast))
-        const savedPointMethod = localStorage.getItem("pointMethod")
-        if (savedPointMethod) setPointMethod(savedPointMethod)
-        const savedPointInvert = localStorage.getItem("pointInvert")
-        if (savedPointInvert) setPointInvert(savedPointInvert === "true")
+        const savedHighContrastSize = localStorage.getItem("highContrastSize")
+        if (savedHighContrastSize) setHighContrastSize(Number(savedHighContrastSize))
+        const savedHighContrastStrength = localStorage.getItem("highContrastStrength")
+        if (savedHighContrastStrength) setHighContrastStrength(Number(savedHighContrastStrength))
+        const savedHighContrastBrightness = localStorage.getItem("highContrastBrightness")
+        if (savedHighContrastBrightness) setHighContrastBrightness(Number(savedHighContrastBrightness))
+        const savedHighContrastContrast = localStorage.getItem("highContrastContrast")
+        if (savedHighContrastContrast) setHighContrastContrast(Number(savedHighContrastContrast))
+        const savedHighContrastInvert = localStorage.getItem("highContrastInvert")
+        if (savedHighContrastInvert) setHighContrastInvert(savedHighContrastInvert === "true")
     }, [])
 
     useEffect(() => {
-        localStorage.setItem("pointSize", pointSize)
-        localStorage.setItem("pointSpacing", pointSpacing)
-        localStorage.setItem("pointRandomness", pointRandomness)
-        localStorage.setItem("pointBrightness", pointBrightness)
-        localStorage.setItem("pointContrast", pointContrast)
-        localStorage.setItem("pointMethod", pointMethod)
-        localStorage.setItem("pointInvert", pointInvert)
-    }, [pointSize, pointSpacing, pointRandomness, pointBrightness, pointContrast, pointMethod, pointInvert])
+        localStorage.setItem("highContrastSize", highContrastSize)
+        localStorage.setItem("highContrastStrength", highContrastStrength)
+        localStorage.setItem("highContrastBrightness", highContrastBrightness)
+        localStorage.setItem("highContrastContrast", highContrastContrast)
+        localStorage.setItem("highContrastInvert", highContrastInvert)
+    }, [highContrastSize, highContrastStrength, highContrastBrightness, highContrastContrast, highContrastInvert])
 
     return (
         <div className="point-image-component" onMouseEnter={() => setEnableDrag(false)}>
@@ -312,54 +297,33 @@ const PointImage: React.FunctionComponent = (props) => {
             <div className="point-options-container">
                 <div className="point-row">
                     <span className="point-text-mini" style={{width: "55px", fontSize: "20px"}}>Invert?</span>
-                    <img className="point-checkbox" src={pointInvert ? checkboxChecked : checkbox} onClick={() => setPointInvert((prev: boolean) => !prev)} style={{filter: getFilter()}}/>
-                    <button className="point-button-small" onClick={() => setPointMethod("uniform")} style={{marginLeft: "10px"}}>
-                        <span className="button-hover">
-                            <span className={`point-button-text-small ${pointMethod === "uniform" ? "button-text-selected" : ""}`}>Uniform</span>
-                        </span>
-                    </button>
-                    <button className="point-button-small" onClick={() => setPointMethod("chaotic")} style={{marginLeft: "10px"}}>
-                        <span className="button-hover">
-                            <span className={`point-button-text-small ${pointMethod === "chaotic" ? "button-text-selected" : ""}`}>Chaotic</span>
-                        </span>
-                    </button>
-                    <button className="point-button-small" onClick={() => setPointMethod("line")} style={{marginLeft: "10px"}}>
-                        <span className="button-hover">
-                            <span className={`point-button-text-small ${pointMethod === "line" ? "button-text-selected" : ""}`}>Line</span>
-                        </span>
-                    </button>
+                    <img className="point-checkbox" src={highContrastInvert ? checkboxChecked : checkbox} onClick={() => setHighContrastInvert((prev: boolean) => !prev)} style={{filter: getFilter()}}/>
                 </div>
                 <div className="point-row">
-                    <span className="point-text">Spacing: </span>
-                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setPointSpacing(value)} min={0} max={100} step={1} value={pointSpacing}/>
-                    <span className="point-text-mini">{pointSpacing}</span>
+                    <span className="point-text">Strength: </span>
+                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setHighContrastStrength(value)} min={1} max={100} step={1} value={highContrastStrength}/>
+                    <span className="point-text-mini">{highContrastStrength}</span>
                 </div>
-                {pointMethod !== "chaotic" ?
                 <div className="point-row">
                     <span className="point-text">Size: </span>
-                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setPointSize(value)} min={1} max={25} step={1} value={pointSize}/>
-                    <span className="point-text-mini">{pointSize}</span>
-                </div> : null}
-                {pointMethod === "chaotic" ?
-                <div className="point-row">
-                    <span className="point-text">Randomness: </span>
-                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setPointRandomness(value)} min={0} max={30} step={1} value={pointRandomness}/>
-                    <span className="point-text-mini">{pointRandomness}</span>
-                </div> : null}
+                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setHighContrastSize(value)} min={1} max={25} step={1} value={highContrastSize}/>
+                    <span className="point-text-mini">{highContrastSize}</span>
+                </div>
                 <div className="point-row">
                     <span className="point-text">Brightness: </span>
-                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setPointBrightness(value)} min={0} max={100} step={1} value={pointBrightness}/>
-                    <span className="point-text-mini">{pointBrightness}</span>
+                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setHighContrastBrightness(value)} min={0} max={100} step={1} value={highContrastBrightness}/>
+                    <span className="point-text-mini">{highContrastBrightness}</span>
                 </div>
                 <div className="point-row">
                     <span className="point-text">Contrast: </span>
-                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setPointContrast(value)} min={0} max={100} step={1} value={pointContrast}/>
-                    <span className="point-text-mini">{pointContrast}</span>
+                    <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setHighContrastContrast(value)} min={0} max={100} step={1} value={highContrastContrast}/>
+                    <span className="point-text-mini">{highContrastContrast}</span>
                 </div>
             </div>
             {image ?
             <div className="point-image-container">
                 <div className="point-image-buttons-container">
+                    <button className="point-image-button" onClick={jpg}>JPG</button>
                     <button className="point-image-button" onClick={png}>PNG</button>
                     <button className="point-image-button" onClick={zip}>ZIP</button>
                     <button className="point-image-button" onClick={gif}>GIF</button>
@@ -385,4 +349,4 @@ const PointImage: React.FunctionComponent = (props) => {
     )
 }
 
-export default PointImage
+export default HighContrastImage

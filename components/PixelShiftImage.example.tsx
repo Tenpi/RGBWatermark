@@ -3,12 +3,13 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
-import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, PixelShiftContext, PixelShiftSizeContext, patterns} from "../renderer"
+import {EnableDragContext, MobileContext, ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, PixelShiftContext, PixelShiftSizeContext, PixelShiftDirectionContext, patterns} from "../Context"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import fileType from "magic-bytes.js"
 import uploadIcon from "../assets/icons/upload.png"
 import xIcon from "../assets/icons/x.png"
+import gifFrames from "gif-frames"
 import JSZip from "jszip"
 import checkboxChecked from "../assets/icons/checkbox-checked.png"
 import checkbox from "../assets/icons/checkbox.png"
@@ -17,12 +18,15 @@ import "./styles/pointimage.less"
 let gifPos = 0
 
 const PixelShiftImage: React.FunctionComponent = (props) => {
+    const {enableDrag, setEnableDrag} = useContext(EnableDragContext)
+    const {mobile, setMobile} = useContext(MobileContext)
     const {image, setImage} = useContext(ImageContext)
     const {imageName, setImageName} = useContext(ImageNameContext)
     const {outputSize, setOutputSize} = useContext(OutputSizeContext)
     const {pixelShift, setPixelShift} = useContext(PixelShiftContext)
     const {pixelShiftSize, setPixelShiftSize} = useContext(PixelShiftSizeContext)
     const {reverse, setReverse} = useContext(ReverseContext)
+    const {pixelShiftDirection, setPixelShiftDirection} = useContext(PixelShiftDirectionContext)
     const [gifData, setGIFData] = useState(null) as any
     const [img, setImg] = useState(null as HTMLImageElement | null)
     const ref = useRef<HTMLCanvasElement>(null)
@@ -117,8 +121,15 @@ const PixelShiftImage: React.FunctionComponent = (props) => {
     }
 
     const parseGIF = async () => {
-        const frames = await functions.extractGIFFrames(image)
-        setGIFData(frames)
+        const frames = await gifFrames({url: image, frames: "all", outputType: "canvas"})
+        const newGIFData = [] as any
+        for (let i = 0; i < frames.length; i++) {
+            newGIFData.push({
+                frame: frames[i].getImage(),
+                delay: frames[i].frameInfo.delay * 10
+            })
+        }
+        setGIFData(newGIFData)
     }
 
     const parseAnimatedWebP = async () => {
@@ -162,7 +173,7 @@ const PixelShiftImage: React.FunctionComponent = (props) => {
         return () => {
             clearTimeout(timeout)
         }
-    }, [img, pixelShift, pixelShiftSize, gifData])
+    }, [img, pixelShift, pixelShiftSize, pixelShiftDirection, gifData])
 
     const jpg = async () => {
         draw(0, true)
@@ -244,13 +255,13 @@ const PixelShiftImage: React.FunctionComponent = (props) => {
     }, [pixelShift, pixelShiftSize])
 
     return (
-        <div className="point-image-component">
+        <div className="point-image-component" onMouseEnter={() => setEnableDrag(false)}>
             <div className="point-upload-container">
                 <div className="point-row">
                     <span className="point-text">Image:</span>
                 </div>
                 <div className="point-row">
-                    <label htmlFor="img" className="point-button" style={{width: "92px"}}>
+                    <label htmlFor="img" className="point-button" style={{width: "119px"}}>
                         <span className="button-hover">
                             <span className="button-text">Upload</span>
                             <img className="button-image" src={uploadIcon}/>
@@ -259,7 +270,7 @@ const PixelShiftImage: React.FunctionComponent = (props) => {
                     <input id="img" type="file" onChange={(event) => loadImage(event)}/>
                     {image ? 
                         <div className="button-image-name-container">
-                            <img className="button-image-icon" src={xIcon} onClick={removeImage}/>
+                            <img className="button-image-icon" src={xIcon} style={{filter: getFilter()}} onClick={removeImage}/>
                             <span className="button-image-name">{imageName}</span>
                         </div>
                     : null}
@@ -270,6 +281,23 @@ const PixelShiftImage: React.FunctionComponent = (props) => {
                 <canvas className="point-image" ref={ref}></canvas>
             </div> : null}
             <div className="point-options-container">
+                <div className="point-row">
+                        <button className="point-button-small" onClick={() => setPixelShiftDirection("xy")} style={{marginLeft: "10px"}}>
+                            <span className="button-hover">
+                                <span className={`point-button-text-small ${pixelShiftDirection === "xy" ? "button-text-selected" : ""}`}>XY</span>
+                            </span>
+                        </button>
+                        <button className="point-button-small" onClick={() => setPixelShiftDirection("x")} style={{marginLeft: "10px"}}>
+                            <span className="button-hover">
+                                <span className={`point-button-text-small ${pixelShiftDirection === "x" ? "button-text-selected" : ""}`}>X</span>
+                            </span>
+                        </button>
+                        <button className="point-button-small" onClick={() => setPixelShiftDirection("y")} style={{marginLeft: "10px"}}>
+                            <span className="button-hover">
+                                <span className={`point-button-text-small ${pixelShiftDirection === "y" ? "button-text-selected" : ""}`}>Y</span>
+                            </span>
+                        </button>
+                </div>
                 <div className="point-row">
                     <span className="point-text">Shift: </span>
                     <Slider className="point-slider" trackClassName="point-slider-track" thumbClassName="point-slider-thumb" onChange={(value) => setPixelShift(value)} min={-10} max={10} step={1} value={pixelShift}/>
@@ -284,6 +312,7 @@ const PixelShiftImage: React.FunctionComponent = (props) => {
             {image ?
             <div className="point-image-container">
                 <div className="point-image-buttons-container">
+                    <button className="point-image-button" onClick={jpg}>JPG</button>
                     <button className="point-image-button" onClick={png}>PNG</button>
                     <button className="point-image-button" onClick={zip}>ZIP</button>
                     <button className="point-image-button" onClick={gif}>GIF</button>

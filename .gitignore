@@ -3,6 +3,8 @@ dist
 build
 .env
 .DS_Store
+components/PixelShiftImage.tsx
 components/PointImage.tsx
 components/RainbowImage.tsx
-components/PixelShiftImage.tsx
+components/HighContrastImage.tsx
+components/PixelationImage.tsx

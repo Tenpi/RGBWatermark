@@ -3,12 +3,13 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
-import {ImageContext, TextContext, WatermarkImageContext, FontContext, BlendModeContext, OutputSizeContext, ImbalanceContext,
+import {EnableDragContext, MobileContext, ImageContext, TextContext, WatermarkImageContext, FontContext, BlendModeContext, OutputSizeContext, ImbalanceContext,
 OpacityContext, SizeContext, SpeedContext, MarginContext, AngleContext, ImageNameContext, ReverseContext, TypeContext, PatternContext, HighCoverageContext,
 ColorStopContext, SaturationContext, BrightnessContext, StopAnimationContext, PixelateContext, VarianceContext, RotationSpeedContext, 
-HueContext, PosXContext, PosYContext, patterns} from "../renderer"
+HueContext, PosXContext, PosYContext, patterns} from "../Context"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
+import gifFrames from "gif-frames"
 import reverseIcon from "../assets/icons/reverse.png"
 import JSZip from "jszip"
 import "./styles/rainbowimage.less"
@@ -17,7 +18,9 @@ let pos = 0
 let gifPos = 0
 let rotatePos = 0
 
-const Image: React.FunctionComponent = (props) => {
+const RainbowImage: React.FunctionComponent = (props) => {
+    const {enableDrag, setEnableDrag} = useContext(EnableDragContext)
+    const {mobile, setMobile} = useContext(MobileContext)
     const {image, setImage} = useContext(ImageContext)
     const {watermarkImage, setWatermarkImage} = useContext(WatermarkImageContext)
     const {font, setFont} = useContext(FontContext)
@@ -123,8 +126,15 @@ const Image: React.FunctionComponent = (props) => {
     }
 
     const parseGIF = async () => {
-        const frames = await functions.extractGIFFrames(image)
-        setGIFData(frames)
+        const frames = await gifFrames({url: image, frames: "all", outputType: "canvas"})
+        const newGIFData = [] as any
+        for (let i = 0; i < frames.length; i++) {
+            newGIFData.push({
+                frame: frames[i].getImage(),
+                delay: frames[i].frameInfo.delay * 10
+            })
+        }
+        setGIFData(newGIFData)
     }
 
     const parseAnimatedWebP = async () => {
@@ -287,7 +297,7 @@ const Image: React.FunctionComponent = (props) => {
     }
 
     return (
-        <div className="image-component">
+        <div className="image-component" onMouseEnter={() => setEnableDrag(false)}>
             <div className="image-container">
                 <canvas className="image" ref={ref}></canvas>
             </div>
@@ -319,4 +329,4 @@ const Image: React.FunctionComponent = (props) => {
     )
 }
 
-export default Image
+export default RainbowImage
