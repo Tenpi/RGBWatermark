@@ -61,6 +61,8 @@ export const HighContrastSpacingContext = React.createContext<any>(null)
 export const PixelationStrengthContext = React.createContext<any>(null)
 export const PixelationSizeContext = React.createContext<any>(null)
 export const PointShiftContext = React.createContext<any>(null)
+export const PointAngleContext = React.createContext<any>(null)
+export const PointVarianceContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -138,6 +140,8 @@ const App = () => {
   const [pixelationStrength, setPixelationStrength] = useState(0)
   const [pixelationSize, setPixelationSize] = useState(1)
   const [pointShift, setPointShift] = useState(0)
+  const [pointAngle, setPointAngle] = useState(0)
+  const [pointVariance, setPointVariance] = useState(0)
   
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -159,6 +163,8 @@ const App = () => {
 
   return (
     <main className="app">
+            <PointVarianceContext.Provider value={{pointVariance, setPointVariance}}>
+            <PointAngleContext.Provider value={{pointAngle, setPointAngle}}>
             <PointShiftContext.Provider value={{pointShift, setPointShift}}>
             <PixelationSizeContext.Provider value={{pixelationSize, setPixelationSize}}>
             <PixelationStrengthContext.Provider value={{pixelationStrength, setPixelationStrength}}>
@@ -260,6 +266,8 @@ const App = () => {
             </PixelationStrengthContext.Provider>
             </PixelationSizeContext.Provider>
             </PointShiftContext.Provider>
+            </PointAngleContext.Provider>
+            </PointVarianceContext.Provider>
     </main>
   )
 }

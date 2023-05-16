@@ -319,4 +319,8 @@ export default class Functions {
         }
         return value
     }
+
+    public static radians (angle: number) {
+        return angle * (Math.PI / 180)
+    }
 }

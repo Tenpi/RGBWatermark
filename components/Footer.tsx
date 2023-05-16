@@ -162,7 +162,7 @@ const Footer: React.FunctionComponent = (props) => {
                 </div> : null}
                 {attackMode === "pointifiction" ?
                 <div className="footer-row">
-                    <span className="footer-text-4">Pointifiction deletes pixels in the image to make the picture look like random noise to the AI. Make sure that you set the spacing high enough so that it can't be removed with gaussian blur. This will completely destroy the model and make it only generate noise.</span>
+                    <span className="footer-text-4">Pointifiction/Lineifiction deletes pixels in the image to make the picture look like random noise to the AI. Make sure that you set the spacing high enough so that it can't be removed with gaussian blur. This will completely destroy the model and make it only generate noise.</span>
                 </div> : null}
                 {attackMode === "pixel shift" ?
                 <div className="footer-row">
