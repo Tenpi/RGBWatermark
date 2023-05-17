@@ -12,6 +12,7 @@ import PixelShiftImage from "./components/PixelShiftImage"
 import PointImage from "./components/PointImage"
 import HighContrastImage from "./components/HighContrastImage"
 import PixelationImage from "./components/PixelationImage"
+import NoiseImage from "./components/NoiseImage"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -63,6 +64,12 @@ export const PixelationSizeContext = React.createContext<any>(null)
 export const PointShiftContext = React.createContext<any>(null)
 export const PointAngleContext = React.createContext<any>(null)
 export const PointVarianceContext = React.createContext<any>(null)
+export const NoiseAmountContext = React.createContext<any>(null)
+export const NoiseSizeContext = React.createContext<any>(null)
+export const NoiseSpacingContext = React.createContext<any>(null)
+export const NoiseHueContext = React.createContext<any>(null)
+export const NoiseSaturationContext = React.createContext<any>(null)
+export const NoiseBrightnessContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -142,6 +149,12 @@ const App = () => {
   const [pointShift, setPointShift] = useState(0)
   const [pointAngle, setPointAngle] = useState(0)
   const [pointVariance, setPointVariance] = useState(0)
+  const [noiseAmount, setNoiseAmount] = useState(0)
+  const [noiseSize, setNoiseSize] = useState(10)
+  const [noiseSpacing, setNoiseSpacing] = useState(0)
+  const [noiseHue, setNoiseHue] = useState(0)
+  const [noiseSaturation, setNoiseSaturation] = useState(0)
+  const [noiseBrightness, setNoiseBrightness] = useState(0)
   
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -158,11 +171,19 @@ const App = () => {
       return (<HighContrastImage/>)
     } else if (attackMode === "pixelation") {
         return (<PixelationImage/>)
+    } else if (attackMode === "noise") {
+      return (<NoiseImage/>)
     }
   }
 
   return (
     <main className="app">
+            <NoiseBrightnessContext.Provider value={{noiseBrightness, setNoiseBrightness}}>
+            <NoiseSaturationContext.Provider value={{noiseSaturation, setNoiseSaturation}}>
+            <NoiseHueContext.Provider value={{noiseHue, setNoiseHue}}>
+            <NoiseSpacingContext.Provider value={{noiseSpacing, setNoiseSpacing}}>
+            <NoiseSizeContext.Provider value={{noiseSize, setNoiseSize}}>
+            <NoiseAmountContext.Provider value={{noiseAmount, setNoiseAmount}}>
             <PointVarianceContext.Provider value={{pointVariance, setPointVariance}}>
             <PointAngleContext.Provider value={{pointAngle, setPointAngle}}>
             <PointShiftContext.Provider value={{pointShift, setPointShift}}>
@@ -268,6 +289,12 @@ const App = () => {
             </PointShiftContext.Provider>
             </PointAngleContext.Provider>
             </PointVarianceContext.Provider>
+            </NoiseAmountContext.Provider>
+            </NoiseSizeContext.Provider>
+            </NoiseSpacingContext.Provider>
+            </NoiseHueContext.Provider>
+            </NoiseSaturationContext.Provider>
+            </NoiseBrightnessContext.Provider>
     </main>
   )
 }

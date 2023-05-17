@@ -176,6 +176,10 @@ const Footer: React.FunctionComponent = (props) => {
                 <div className="footer-row">
                     <span className="footer-text-2">Pixelation will downscale the image while preserving hard edges and is a method to deliberately lower the quality. It will lead to pixelated images in the output.</span>
                 </div> : null}
+                {attackMode === "noise" ?
+                <div className="footer-row">
+                    <span className="footer-text-4">Noise interpolation shifts the pixels closer to a grid of noise, which most notably impacts img2img and controlnet.</span>
+                </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
                     <span className="footer-text-3">If you are using the watermarks with Glaze, it is better to add them before. If you want animation, download the ZIP file, glaze all the images, 
