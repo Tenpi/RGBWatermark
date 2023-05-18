@@ -11,23 +11,6 @@ const Footer: React.FunctionComponent = (props) => {
     const {speed, setSpeed} = useContext(SpeedContext)
     const {type, setType} = useContext(TypeContext)
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
-    
-    const version = "1.0.8"
-
-    const windows = async () => {
-        const filename = `RGBWatermark-Setup-${version}.exe`
-        return functions.download(filename, `https://github.com/Tenpi/RGBWatermark/releases/download/v${version}/${filename}`)
-    }
-
-    const mac = async () => {
-        const filename = `RGBWatermark-${version}.dmg`
-        return functions.download(filename, `https://github.com/Tenpi/RGBWatermark/releases/download/v${version}/${filename}`)
-    }
-
-    const linux = async () => {
-        const filename = `RGBWatermark-${version}.AppImage`
-        return functions.download(filename, `https://github.com/Tenpi/RGBWatermark/releases/download/v${version}/${filename}`)
-    }
 
     const recombineGIF = async (event: any) => {
         const files = event.target.files
@@ -179,6 +162,10 @@ const Footer: React.FunctionComponent = (props) => {
                 {attackMode === "noise" ?
                 <div className="footer-row">
                     <span className="footer-text-4">Noise interpolation shifts the pixels closer to a grid of noise, which most notably impacts img2img and controlnet.</span>
+                </div> : null}
+                {attackMode === "edge blur" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Edge blur is a controlnet specific method that applies a blur onto the edges of the image. Make sure that you recover the eyes in a separate program.</span>
                 </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
