@@ -32,13 +32,17 @@ const NavBar: React.FunctionComponent = (props) => {
 
     return (
         <div className="navbar">
-            <img className="navbar-item" src={rainbowWatermarks} onClick={() => setAttackMode("rainbow watermarks")}/>
-            <img className="navbar-item" src={pointifiction} onClick={() => setAttackMode("pointifiction")}/>
-            <img className="navbar-item" src={pixelshift} onClick={() => setAttackMode("pixel shift")}/>
-            <img className="navbar-item" src={highcontrast} onClick={() => setAttackMode("high contrast")}/>
-            <img className="navbar-item" src={pixelation} onClick={() => setAttackMode("pixelation")}/>
-            <img className="navbar-item" src={noise} onClick={() => setAttackMode("noise")}/>
-            <img className="navbar-item" src={edgeblur} onClick={() => setAttackMode("edge blur")}/>
+            <div className="navbar-row">
+                <img className="navbar-item" src={rainbowWatermarks} onClick={() => setAttackMode("rainbow watermarks")}/>
+                <img className="navbar-item" src={pointifiction} onClick={() => setAttackMode("pointifiction")}/>
+                <img className="navbar-item" src={pixelshift} onClick={() => setAttackMode("pixel shift")}/>
+                <img className="navbar-item" src={highcontrast} onClick={() => setAttackMode("high contrast")}/>
+                <img className="navbar-item" src={pixelation} onClick={() => setAttackMode("pixelation")}/>
+            </div>
+            <div className="navbar-row">
+                <img className="navbar-item" src={noise} onClick={() => setAttackMode("noise")}/>
+                <img className="navbar-item" src={edgeblur} onClick={() => setAttackMode("edge blur")}/>
+            </div>
         </div>
     )
 }

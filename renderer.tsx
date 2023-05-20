@@ -76,6 +76,8 @@ export const EdgeBlurRadiusContext = React.createContext<any>(null)
 export const EdgeBlurEdgeRadiusContext = React.createContext<any>(null)
 export const EdgeBlurSensitivityContext = React.createContext<any>(null)
 export const EdgeBlurShowEdgesContext = React.createContext<any>(null)
+export const PointFillContext = React.createContext<any>(null)
+export const PointAlphaContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -166,6 +168,8 @@ const App = () => {
   const [edgeBlurEdgeRadius, setEdgeBlurEdgeRadius] = useState(3)
   const [edgeBlurSensitivity, setEdgeBlurSensitivity] = useState(20)
   const [edgeBlurShowEdges, setEdgeBlurShowEdges] = useState(false)
+  const [pointFill, setPointFill] = useState("#000000")
+  const [pointAlpha, setPointAlpha] = useState(true)
   
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -191,6 +195,8 @@ const App = () => {
 
   return (
     <main className="app">
+            <PointAlphaContext.Provider value={{pointAlpha, setPointAlpha}}>
+            <PointFillContext.Provider value={{pointFill, setPointFill}}>
             <EdgeBlurShowEdgesContext.Provider value={{edgeBlurShowEdges, setEdgeBlurShowEdges}}>
             <EdgeBlurSensitivityContext.Provider value={{edgeBlurSensitivity, setEdgeBlurSensitivity}}>
             <EdgeBlurEdgeRadiusContext.Provider value={{edgeBlurEdgeRadius, setEdgeBlurEdgeRadius}}>
@@ -316,6 +322,8 @@ const App = () => {
             </EdgeBlurEdgeRadiusContext.Provider>
             </EdgeBlurSensitivityContext.Provider>
             </EdgeBlurShowEdgesContext.Provider>
+            </PointFillContext.Provider>
+            </PointAlphaContext.Provider>
     </main>
   )
 }

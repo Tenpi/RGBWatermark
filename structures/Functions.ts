@@ -131,6 +131,12 @@ export default class Functions {
         return result.filter
     }
 
+    public static hexToRgb = (hexColor: string) => {
+        const rgb = hexToRgb(hexColor) as any
+        if (!rgb) return {r: 0, g: 0, b: 0}
+        return {r: rgb[0], g: rgb[1], b: rgb[2]}
+    }
+
     private static parseTransparentColor = (color: string) => {
         return Number(`0x${color.replace(/^#/, "")}`)
     }
