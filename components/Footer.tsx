@@ -145,7 +145,7 @@ const Footer: React.FunctionComponent = (props) => {
                 </div> : null}
                 {attackMode === "pointifiction" ?
                 <div className="footer-row">
-                    <span className="footer-text-4">Pointifiction/Lineifiction deletes pixels in the image to make the picture look like random noise to the AI. Make sure that you set the spacing high enough so that it can't be removed with gaussian blur. This will completely destroy the model and make it only generate noise.</span>
+                    <span className="footer-text-4">Pointifiction/Lineifiction/Trifiction/Rectifiction deletes pixels in the image to make the picture look like random noise to the AI. Make sure that you set the spacing high enough so that it can't be removed with gaussian blur. This will completely destroy the model and make it only generate noise.</span>
                 </div> : null}
                 {attackMode === "pixel shift" ?
                 <div className="footer-row">
@@ -166,6 +166,10 @@ const Footer: React.FunctionComponent = (props) => {
                 {attackMode === "edge blur" ?
                 <div className="footer-row">
                     <span className="footer-text-5">Edge blur is a controlnet specific method that applies a blur onto the edges of the image. Make sure that you recover the eyes in a separate program.</span>
+                </div> : null}
+                {attackMode === "sprinkles" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Sprinkles is a controlnet specific method that applies multiple copies of pointifiction and scatters them. When used in conjuction with edge blur, it should break all controlnet models.</span>
                 </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">

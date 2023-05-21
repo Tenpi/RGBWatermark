@@ -329,4 +329,8 @@ export default class Functions {
     public static radians (angle: number) {
         return angle * (Math.PI / 180)
     }
+
+    public static randomRange(min: number, max: number, seed: number = 1) {
+        return Math.floor(Functions.random(seed) * (max - min + 1)) + min
+    }
 }

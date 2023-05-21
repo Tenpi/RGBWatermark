@@ -10,3 +10,4 @@ components/HighContrastImage.tsx
 components/PixelationImage.tsx
 components/NoiseImage.tsx
 components/EdgeBlurImage.tsx
+components/SprinkleImage.tsx
