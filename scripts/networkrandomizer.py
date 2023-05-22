@@ -1,3 +1,16 @@
+import sys
+import subprocess
+import pkg_resources
+
+required = {"torch", "pytorch_lightning", "safetensors", "onnx"}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+if missing:
+    python = sys.executable
+    subprocess.check_call([python, "-m", "pip", "install", *missing], stdout=subprocess.DEVNULL)
+
+import os
 import torch 
 from safetensors import safe_open
 from safetensors.torch import save_file
@@ -6,7 +19,6 @@ from onnx import numpy_helper
 import numpy
 import argparse
 import pathlib
-import os
 
 device = torch.device("cpu")
 

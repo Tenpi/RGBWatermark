@@ -18,6 +18,7 @@ const NetworkRandomizer: React.FunctionComponent = (props) => {
     const [networkName, setNetworkName] = useState("")
     const [destFolder, setDestFolder] = useState("")
     const [fHover, setFhover] = useState(false)
+    const [error, setError] = useState("")
     const history = useHistory()
 
     useEffect(() => {
@@ -58,11 +59,19 @@ const NetworkRandomizer: React.FunctionComponent = (props) => {
         setNetworkName("")
     }
 
-    const randomize = () => {
+    const randomize = async () => {
         if (network && networkName && destFolder) {
             let newName = `${path.basename(networkName, path.extname(networkName))}_randomized${path.extname(networkName)}`
             const dest = path.join(destFolder, newName)
-            ipcRenderer.invoke("randomize-network", network, dest)
+            try {
+                await ipcRenderer.invoke("randomize-network", network, dest)
+            } catch (err) {
+                console.error(err)
+                setError("Error: Check Developer Tools (Ctrl+Shift+I)")
+                setTimeout(() => {
+                    setError("")
+                }, 5000)
+            }
         } 
     }
 
@@ -103,12 +112,10 @@ const NetworkRandomizer: React.FunctionComponent = (props) => {
                 <div className="network-row">
                     <span className="network-text">Download Python (<span className="network-link" onClick={() => shell.openExternal("https://www.python.org/downloads/")}>https://www.python.org/downloads/</span>)</span>
                 </div>
+                {error ? 
                 <div className="network-row">
-                    <span className="network-text-2">Install the script dependencies:</span>
-                </div>
-                <div className="network-row">
-                    <span className="network-text" style={{userSelect: "all"}}>pip3 install torch safetensors onnx</span>
-                </div>
+                    <span className="network-text-error">{error}</span>
+                </div> : null}
                 <div className="network-row">
                     <button className="network-button-2" onClick={randomize} style={{marginTop: "5px"}}>
                         <span className="button-hover">

@@ -10,7 +10,8 @@ import pack from "./package.json"
 import functions from "./structures/Functions"
 import child_process from "child_process"
 import util from "util"
-import networkRandomizerScript from "./networkrandomizer.py"
+let networkRandomizerScript = path.join(app.getAppPath(), "../../scripts/networkrandomizer.py")
+if (!fs.existsSync(networkRandomizerScript)) networkRandomizerScript = "./scripts/networkrandomizer.py"
 
 const exec = util.promisify(child_process.exec)
 
