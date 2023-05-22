@@ -18,7 +18,7 @@ module.exports = [
     optimization: {minimize: true, minimizer: [new TerserJSPlugin({extractComments: false}), new WebpackObfuscator()], moduleIds: "named"},
     module: {
       rules: [
-        {test: /\.(jpe?g|png|gif|svg|mp3|wav|mp4|yml|txt|otf|ttf|svg)$/, exclude, use: [{loader: "file-loader", options: {name: "[path][name].[ext]"}}]},
+        {test: /\.(jpe?g|png|gif|svg|mp3|wav|mp4|yml|txt|otf|ttf|svg|py)$/, exclude, use: [{loader: "file-loader", options: {name: "[path][name].[ext]"}}]},
         {test: /\.html$/, exclude, use: [{loader: "html-loader", options: {minimize: false}}]},
         {test: /\.less$/, exclude, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader", "less-loader"]},
         {test: /\.css$/, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader"]},
@@ -44,7 +44,7 @@ module.exports = [
     optimization: {minimize: true, minimizer: [new TerserJSPlugin({extractComments: false})], moduleIds: "named"},
     module: {
       rules: [
-          {test: /\.(jpe?g|png|gif|svg|mp3|wav|mp4|yml|txt|otf|svg)$/, exclude, use: [{loader: "file-loader", options: {name: "[path][name].[ext]"}}]},
+          {test: /\.(jpe?g|png|gif|svg|mp3|wav|mp4|yml|txt|otf|svg|py)$/, exclude, use: [{loader: "file-loader", options: {name: "[path][name].[ext]"}}]},
           {test: /\.(tsx?|jsx?)$/, exclude, use: [{loader: "ts-loader", options: {transpileOnly: true}}]}
       ]
     },

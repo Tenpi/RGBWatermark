@@ -15,6 +15,7 @@ import PixelationImage from "./components/PixelationImage"
 import EdgeBlurImage from "./components/EdgeBlurImage"
 import NoiseImage from "./components/NoiseImage"
 import SprinkleImage from "./components/SprinkleImage"
+import NetworkRandomizer from "./components/NetworkRandomizer"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -208,6 +209,8 @@ const App = () => {
       return (<SprinkleImage/>)
     } else if (attackMode === "edge blur") {
       return (<EdgeBlurImage/>)
+    } else if (attackMode === "network randomizer") {
+      return (<NetworkRandomizer/>)
     }
   }
 

@@ -8,6 +8,11 @@ import process from "process"
 import "./dev-app-update.yml"
 import pack from "./package.json"
 import functions from "./structures/Functions"
+import child_process from "child_process"
+import util from "util"
+import networkRandomizerScript from "./networkrandomizer.py"
+
+const exec = util.promisify(child_process.exec)
 
 require("@electron/remote/main").initialize()
 process.setMaxListeners(0)
@@ -16,6 +21,11 @@ autoUpdater.autoDownload = false
 const store = new Store()
 ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
+})
+
+ipcMain.handle("randomize-network", async (event, input: string, output: string) => {
+  await exec(`python3 ${networkRandomizerScript} -i ${input} -o ${output}`)
+  shell.showItemInFolder(path.normalize(output))
 })
 
 ipcMain.handle("store-settings", (event, settings) => {
