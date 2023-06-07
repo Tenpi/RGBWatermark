@@ -7,6 +7,7 @@
     "start": "npm run clean && webpack && cross-env DEVELOPMENT=true electron dist/main.js",
     "clean": "del-cli ./dist",
     "network": "arch -x86_64 cythonize -i ./scripts/networkrandomizer.py",
+    "shifter": "arch -x86_64 cythonize -i ./scripts/networkshifter.py",
     "build": "npm run clean ./build && webpack && electron-builder -p never",
     "rebuild": "npm rebuild --runtime=electron --target=23.2.0 --disturl=https://atom.io/download/atom-shell --abi=113",
     "release": "npm run clean ./build && webpack && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder -mwl -p always"
@@ -36,7 +37,8 @@
       },
       "category": "public.app-category.utilities",
       "extraFiles": [
-        "scripts/networkrandomizer.py"
+        "scripts/networkrandomizer.py",
+        "scripts/networkshifter.py"
       ]
     },
     "dmg": {
@@ -53,7 +55,8 @@
         "arch": "x64"
       },
       "extraFiles": [
-        "scripts/networkrandomizer.py"
+        "scripts/networkrandomizer.py",
+        "scripts/networkshifter.py"
       ]
     },
     "nsis": {
@@ -72,7 +75,8 @@
       },
       "category": "Utility",
       "extraFiles": [
-        "scripts/networkrandomizer.py"
+        "scripts/networkrandomizer.py",
+        "scripts/networkshifter.py"
       ]
     },
     "files": [

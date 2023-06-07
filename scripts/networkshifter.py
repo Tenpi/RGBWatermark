@@ -200,5 +200,3 @@ if __name__ == "__main__":
         shift_bin(args.input, args.output, args.shift, args.probability)
         if not check_filesize_match(args.input, args.output):
             shift_bin(args.input, args.output, args.shift, args.probability, True)
-
-# 0.001
