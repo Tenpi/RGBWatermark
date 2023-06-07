@@ -22,7 +22,8 @@ module.exports = [
         {test: /\.html$/, exclude, use: [{loader: "html-loader", options: {minimize: false}}]},
         {test: /\.less$/, exclude, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader", "less-loader"]},
         {test: /\.css$/, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader"]},
-        {test: /\.(tsx?|jsx?)$/, exclude, use: [{loader: "ts-loader", options: {transpileOnly: true}}]}
+        {test: /\.(tsx?|jsx?)$/, exclude, use: [{loader: "ts-loader", options: {transpileOnly: true}}]},
+        {test: /\.m?js$/, resolve: {fullySpecified: false}}
       ]
     },
     plugins: [

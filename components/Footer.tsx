@@ -171,6 +171,14 @@ const Footer: React.FunctionComponent = (props) => {
                 <div className="footer-row">
                     <span className="footer-text-5">Sprinkles is a controlnet specific method that applies multiple copies of pointifiction and scatters them. When used in conjuction with edge blur, it should break all controlnet models.</span>
                 </div> : null}
+                {attackMode === "conversion" ?
+                <div className="footer-row">
+                    <span className="footer-text-4">File conversion converts the file to a lesser used format, which should help avoid web crawlers.</span>
+                </div> : null}
+                {attackMode === "inflation" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">File inflation appends random bytes to inflate the filesize, which should slow down web crawlers.</span>
+                </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
                     <span className="footer-text-3">If you are using the watermarks with Glaze, it is better to add them before. If you want animation, download the ZIP file, glaze all the images, 

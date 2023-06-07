@@ -283,6 +283,11 @@ export default class Functions {
         return Functions.arrayIncludes(path.extname(file), videoExtensions)
     }
 
+    public static readableFileSize = (bytes: number) => {
+        const i = bytes === 0 ? 0 : Math.floor(Math.log(bytes) / Math.log(1024))
+        return `${Number((bytes / Math.pow(1024, i)).toFixed(2))} ${["B", "KB", "MB", "GB", "TB"][i]}`
+    }
+
     public static imageDimensions = async (image: string) => {
         return new Promise<any>((resolve) => {
             if (Functions.isVideo(image)) {
@@ -317,6 +322,10 @@ export default class Functions {
         })
     }
 
+    public static escapeQuotes = (str: string) => {
+        return `${str.replace(/"/g, `"\\""`)}`
+    }
+
     public static truncateColor = (value: number) => {
         if (value < 0) {
           value = 0
@@ -332,5 +341,12 @@ export default class Functions {
 
     public static randomRange(min: number, max: number, seed: number = 1) {
         return Math.floor(Functions.random(seed) * (max - min + 1)) + min
+    }
+
+    public static concatTypedArrays = (a: any, b: any) => {
+        var c = new (a.constructor)(a.length + b.length)
+        c.set(a, 0)
+        c.set(b, a.length)
+        return c
     }
 }

@@ -16,6 +16,9 @@ import EdgeBlurImage from "./components/EdgeBlurImage"
 import NoiseImage from "./components/NoiseImage"
 import SprinkleImage from "./components/SprinkleImage"
 import NetworkRandomizer from "./components/NetworkRandomizer"
+import NetworkShifter from "./components/NetworkShifter"
+import Conversion from "./components/Conversion"
+import Inflation from "./components/Inflation"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -87,6 +90,9 @@ export const SprinkleSpacingContext = React.createContext<any>(null)
 export const SprinkleDirectionContext = React.createContext<any>(null)
 export const TriDirectionContext = React.createContext<any>(null)
 export const PixelationOpacityContext = React.createContext<any>(null)
+export const SVGColorRatioContext = React.createContext<any>(null)
+export const SVGPreviewContext = React.createContext<any>(null)
+export const AppendBytesContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -187,9 +193,12 @@ const App = () => {
   const [sprinkleDirection, setSprinkleDirection] = useState("45")
   const [triDirection, setTriDirection] = useState("△")
   const [pixelationOpacity, setPixelationOpacity] = useState(100)
+  const [svgColorRatio, setSVGColorRatio] = useState(0)
+  const [previewSVG, setPreviewSVG] = useState(false)
+  const [appendBytes, setAppendBytes] = useState(10)
   
   useEffect(() => {
-    ipcRenderer.on("debug", console.log)
+    ipcRenderer.on("debug", console.error)
   }, [])
 
   const getAttack = () => {
@@ -211,11 +220,20 @@ const App = () => {
       return (<EdgeBlurImage/>)
     } else if (attackMode === "network randomizer") {
       return (<NetworkRandomizer/>)
+    } else if (attackMode === "network shifter") {
+      return (<NetworkShifter/>)
+    } else if (attackMode === "conversion") {
+      return (<Conversion/>)
+    } else if (attackMode === "inflation") {
+      return (<Inflation/>)
     }
   }
 
   return (
     <main className="app">
+            <AppendBytesContext.Provider value={{appendBytes, setAppendBytes}}>
+            <SVGPreviewContext.Provider value={{previewSVG, setPreviewSVG}}>
+            <SVGColorRatioContext.Provider value={{svgColorRatio, setSVGColorRatio}}>
             <PixelationOpacityContext.Provider value={{pixelationOpacity, setPixelationOpacity}}>
             <TriDirectionContext.Provider value={{triDirection, setTriDirection}}>
             <SprinkleDirectionContext.Provider value={{sprinkleDirection, setSprinkleDirection}}>
@@ -361,6 +379,9 @@ const App = () => {
             </SprinkleDirectionContext.Provider>
             </TriDirectionContext.Provider>
             </PixelationOpacityContext.Provider>
+            </SVGColorRatioContext.Provider>
+            </SVGPreviewContext.Provider>
+            </AppendBytesContext.Provider>
     </main>
   )
 }

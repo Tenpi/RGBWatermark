@@ -10,10 +10,13 @@ import pack from "./package.json"
 import functions from "./structures/Functions"
 import child_process from "child_process"
 import util from "util"
+import electronDL from "electron-dl"
 let networkRandomizerScript = path.join(app.getAppPath(), "../../scripts/networkrandomizer.py")
 if (!fs.existsSync(networkRandomizerScript)) networkRandomizerScript = "./scripts/networkrandomizer.py"
+let networkShifterScript = path.join(app.getAppPath(), "../../scripts/networkshifter.py")
+if (!fs.existsSync(networkShifterScript)) networkShifterScript = "./scripts/networkshifter.py"
 
-const exec = util.promisify(child_process.exec)
+electronDL({openFolderWhenDone: true, showBadge: false})
 
 require("@electron/remote/main").initialize()
 process.setMaxListeners(0)
@@ -24,8 +27,29 @@ ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
 })
 
+ipcMain.handle("shift-network", async (event, input: string, output: string, shift: string, probability: string) => {
+  try {
+    if (process.platform === "darwin") {
+      child_process.execSync(`/usr/local/bin/python3 ${networkShifterScript} -i ${input} -o ${output} -s ${shift} -p ${probability}`)
+    } else {
+      child_process.execSync(`python3 ${networkShifterScript} -i ${input} -o ${output} -s ${shift} -p ${probability}`)
+    }
+  } catch (error) {
+    return Promise.reject(error)
+  }
+  shell.showItemInFolder(path.normalize(output))
+})
+
 ipcMain.handle("randomize-network", async (event, input: string, output: string) => {
-  await exec(`python3 ${networkRandomizerScript} -i ${input} -o ${output}`)
+  try {
+    if (process.platform === "darwin") {
+      child_process.execSync(`/usr/local/bin/python3 ${networkRandomizerScript} -i ${input} -o ${output}`)
+    } else {
+      child_process.execSync(`python3 ${networkRandomizerScript} -i ${input} -o ${output}`)
+    }
+  } catch (error) {
+    return Promise.reject(error)
+  }
   shell.showItemInFolder(path.normalize(output))
 })
 
