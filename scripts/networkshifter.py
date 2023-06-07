@@ -171,7 +171,7 @@ def shift_bin(input, output, shift, probability, half = False):
     torch.save(model, output)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="Network Randomizer")
+    parser = argparse.ArgumentParser(prog="Network Shifter")
     parser.add_argument("-i", "--input")
     parser.add_argument("-o", "--output")
     parser.add_argument("-s", "--shift")
