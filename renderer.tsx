@@ -19,6 +19,9 @@ import NetworkRandomizer from "./components/NetworkRandomizer"
 import NetworkShifter from "./components/NetworkShifter"
 import Conversion from "./components/Conversion"
 import Inflation from "./components/Inflation"
+import Fence from "./components/Fence"
+import AdversarialNoise from "./components/AdversarialNoise"
+import AIWatermark from "./components/AIWatermark"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -226,6 +229,12 @@ const App = () => {
       return (<Conversion/>)
     } else if (attackMode === "inflation") {
       return (<Inflation/>)
+    } else if (attackMode === "fence") {
+      return (<Fence/>)
+    } else if (attackMode === "adversarial noise") {
+      return (<AdversarialNoise/>)
+    } else if (attackMode === "ai watermark") {
+      return (<AIWatermark/>)
     }
   }
 

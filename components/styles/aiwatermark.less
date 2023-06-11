@@ -1,6 +1,6 @@
 @import "../../index.less";
 
-.point-image-component {
+.aiwatermark-image-component {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -10,14 +10,14 @@
     padding-right: 20px;
 }
 
-.point-upload-container {
+.aiwatermark-upload-container {
     display: flex;
     justify-content: flex-start;
     width: max-content;
     flex-direction: column;
 }
 
-.point-image-container {
+.aiwatermark-image-container {
     display: flex;
     justify-content: flex-start;
     width: 100%;
@@ -25,7 +25,23 @@
     align-items: center;
 }
 
-.point-options-container {
+.aiwatermark-options-container {
+    display: flex;
+    justify-content: flex-start;
+    // width: 100%;
+    flex-direction: column;
+    // align-items: center;
+    // justify-content: center;
+}
+
+.aiwatermark-imageoptions-container {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    flex-direction: row;
+}
+
+.aiwatermark-image-bigcontainer {
     display: flex;
     justify-content: flex-start;
     width: 100%;
@@ -33,21 +49,21 @@
     align-items: center;
 }
 
-.point-image {
+.aiwatermark-image {
     width: auto;
     height: auto;
-    max-width: 700px;
-    max-height: 500px;
+    max-width: 500px;
+    max-height: 400px;
 }
 
-.point-row {
+.aiwatermark-row {
     display: flex;
     justify-content: flex-start;
-    margin-top: 8px;
+    margin-top: 10px;
     align-items: center;
 }
 
-.point-button {
+.aiwatermark-button {
     background-color: var(--buttonBG);
     border: none;
     padding: 3px 5px;
@@ -56,7 +72,7 @@
     align-items: center;
 }
 
-.point-button-small {
+.aiwatermark-button-small {
     background-color: var(--buttonBG);
     border: none;
     padding: 0px 4px;
@@ -65,7 +81,7 @@
     align-items: center;
 }
 
-.point-text {
+.aiwatermark-text {
     font-family: Arial, Helvetica, sans-serif;
     color: var(--text);
     font-size: 20px;
@@ -73,7 +89,7 @@
     white-space: nowrap;
 }
 
-.point-button-text-small {
+.aiwatermark-button-text-small {
     font-family: Arial, Helvetica, sans-serif;
     font-weight: bold;
     text-decoration: none;
@@ -82,7 +98,7 @@
     color: white;
 }
 
-.point-text-mini {
+.aiwatermark-text-mini {
     font-family: Arial, Helvetica, sans-serif;
     color: var(--text);
     font-size: 16px;
@@ -91,26 +107,26 @@
     text-decoration: none;
 }
 
-.point-slider {
+.aiwatermark-slider {
     display: flex;
-    width: 500px;
+    width: 200px;
     height: 100%;
     margin-left: 30px;
     margin-right: 30px;
     align-items: center;
 }
 
-.point-slider-track {
+.aiwatermark-slider-track {
     display: flex;
     height: 6px;
     background-color: var(--sliderBG);
 }
 
-.point-slider-track.point-slider-track-1 {
+.aiwatermark-slider-track.aiwatermark-slider-track-1 {
     background-color: var(--sliderBG);
 }
 
-.point-slider-thumb {
+.aiwatermark-slider-thumb {
     opacity: 1;
     display: flex;
     margin-top: -1px;
@@ -126,13 +142,14 @@
     }
 }
 
-.point-image-buttons-container {
+.aiwatermark-image-buttons-container {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.point-image-button {
+.aiwatermark-image-button {
+    margin: 0px;
     margin-top: 10px;
     margin-left: 20px;
     border: 2px solid black;
@@ -152,14 +169,21 @@
     }
 }
 
-.point-checkbox {
-    margin-left: 5px;
+.aiwatermark-checkbox {
+    margin-left: 15px;
     width: 17px;
     height: 17px;
     cursor: pointer;
 }
 
-.point-image-output-text {
+.aiwatermark-image-output-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.aiwatermark-image-output-text {
     font-family: Arial, Helvetica, sans-serif;
     text-decoration: none;
     font-size: 17px;
@@ -167,7 +191,7 @@
     color: var(--text);
 }
 
-.point-image-output-text-mini {
+.aiwatermark-image-output-text-mini {
     font-family: Arial, Helvetica, sans-serif;
     color: var(--text);
     font-size: 16px;
@@ -177,8 +201,7 @@
     text-decoration: none;
 }
 
-.point-image-output-input {
-    margin-top: 3px;
+.aiwatermark-image-output-input {
     height: 35px;
     width: 55px;
     background-color: transparent;
@@ -189,28 +212,45 @@
     padding: 5px;
 }
 
-.point-image-corner-img {
+.aiwatermark-image-corner-img {
     position: absolute;
     left: 10px;
     top: 10px;
-    height: 40px;
+    height: 50px;
     width: auto;
 }
 
-.point-image-corner-img-2 {
+.aiwatermark-image-corner-img-2 {
     position: absolute;
-    height: 40px;
+    height: 50px;
     width: auto;
 }
 
-.point-image-relative-container {
+.aiwatermark-image-relative-container {
     position: relative;
     width: max-content;
+    margin-top: 40px;
 }
 
-
 @media screen and (max-width: 700px) {
-    .point-slider {
+    .aiwatermark-image-component {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .aiwatermark-slider {
         width: 165px;
+    }
+
+    .aiwatermark-image {
+        width: auto;
+        height: auto;
+        max-width: 500px;
+        max-height: 400px;
+    }
+
+    .aiwatermark-image-output-input {
+        height: 50px;
+        //font-size: 25px;
     }
 }

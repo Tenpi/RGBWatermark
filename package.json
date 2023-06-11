@@ -1,6 +1,6 @@
 {
   "name": "rgbwatermark",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Protects your art against AI/machine learning theft with a customizable rainbow watermark.",
   "main": "dist/main.js",
   "scripts": {
@@ -135,6 +135,7 @@
     "gif-frames": "github:tenpi/gif-frames#no-cumulative",
     "image-js": "^0.35.3",
     "image-pixels": "^2.2.2",
+    "images-meta": "github:tenpi/images-meta",
     "imagetracerjs": "^1.2.6",
     "jszip": "^3.10.1",
     "magic-bytes.js": "^1.0.14",

@@ -11,6 +11,8 @@ components/PixelationImage.tsx
 components/NoiseImage.tsx
 components/EdgeBlurImage.tsx
 components/SprinkleImage.tsx
+components/Fence.tsx
+components/AdversarialNoise.tsx
 scripts/build
 pyarmor.error.log
 test.py

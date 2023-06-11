@@ -20,6 +20,7 @@ import TGA from "tga"
 import ImageTracer from "imagetracerjs"
 import {Canvg} from "canvg"
 import {optimize} from "svgo"
+import conversionCorner from "../assets/icons/conversioncorner.png"
 import "./styles/pointimage.less"
 
 let gifPos = 0
@@ -341,7 +342,10 @@ const Conversion: React.FunctionComponent = (props) => {
             </div>
             {image ?
             <div className="point-image-container">
-                <canvas className="point-image" ref={ref}></canvas>
+                <div className="point-image-relative-container">
+                    <img className="point-image-corner-img" src={conversionCorner}/>
+                    <canvas className="point-image" ref={ref}></canvas>
+                </div>
             </div> : null}
             <div className="point-options-container">
                 <div className="point-row">

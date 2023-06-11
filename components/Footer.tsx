@@ -179,6 +179,18 @@ const Footer: React.FunctionComponent = (props) => {
                 <div className="footer-row">
                     <span className="footer-text-5">File inflation appends random bytes to inflate the filesize, which should slow down web crawlers.</span>
                 </div> : null}
+                {attackMode === "ai watermark" ?
+                <div className="footer-row">
+                    <span className="footer-text-6">AI watermark adds a watermark to identify content as AI-generated. Any metadata from the original file is preserved.</span>
+                </div> : null}
+                {attackMode === "fence" ?
+                <div className="footer-row">
+                    <span className="footer-text-4">The fence adds a diamond fence that looks better than trifiction but is a bit weaker.</span>
+                </div> : null}
+                {attackMode === "adversarial noise" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Adversarial noise adds pre-computed adversarial noise, which should add grain and interfere with controlnet.</span>
+                </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
                     <span className="footer-text-3">If you are using the watermarks with Glaze, it is better to add them before. If you want animation, download the ZIP file, glaze all the images, 

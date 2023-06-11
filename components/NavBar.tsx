@@ -19,6 +19,9 @@ import networkrandomizer from "../assets/icons/networkrandomizer.png"
 import networkshifter from "../assets/icons/networkshifter.png"
 import conversion from "../assets/icons/conversion.png"
 import inflation from "../assets/icons/inflation.png"
+import fence from "../assets/icons/fence.png"
+import adversarialnoise from "../assets/icons/adversarialnoise.png"
+import aiwatermark from "../assets/icons/aiwatermark.png"
 
 const NavBar: React.FunctionComponent = (props) => {
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
@@ -48,12 +51,15 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={noise} onClick={() => setAttackMode("noise")}/>
                 <img className="navbar-item" src={edgeblur} onClick={() => setAttackMode("edge blur")}/>
                 <img className="navbar-item" src={sprinkles} onClick={() => setAttackMode("sprinkles")}/>
+                <img className="navbar-item" src={fence} onClick={() => setAttackMode("fence")}/>
+                <img className="navbar-item" src={adversarialnoise} onClick={() => setAttackMode("adversarial noise")}/>
                 <img className="navbar-item" src={conversion} onClick={() => setAttackMode("conversion")}/>
                 <img className="navbar-item" src={inflation} onClick={() => setAttackMode("inflation")}/>
             </div>
             <div className="navbar-row">
                 <img className="navbar-item" src={networkrandomizer} onClick={() => setAttackMode("network randomizer")}/>
                 <img className="navbar-item" src={networkshifter} onClick={() => setAttackMode("network shifter")}/>
+                <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
             </div>
         </div>
     )
