@@ -21,6 +21,8 @@ import Conversion from "./components/Conversion"
 import Inflation from "./components/Inflation"
 import Fence from "./components/Fence"
 import AdversarialNoise from "./components/AdversarialNoise"
+import CRT from "./components/CRT"
+import RGBSplit from "./components/RGBSplit"
 import AIWatermark from "./components/AIWatermark"
 import "./index.less"
 
@@ -235,6 +237,10 @@ const App = () => {
       return (<AdversarialNoise/>)
     } else if (attackMode === "ai watermark") {
       return (<AIWatermark/>)
+    } else if (attackMode === "crt") {
+      return (<CRT/>)
+    } else if (attackMode === "rgb split") {
+      return (<RGBSplit/>)
     }
   }
 

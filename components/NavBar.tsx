@@ -20,6 +20,8 @@ import networkshifter from "../assets/icons/networkshifter.png"
 import conversion from "../assets/icons/conversion.png"
 import inflation from "../assets/icons/inflation.png"
 import fence from "../assets/icons/fence.png"
+import crt from "../assets/icons/crt.png"
+import rgbsplit from "../assets/icons/rgbsplit.png"
 import adversarialnoise from "../assets/icons/adversarialnoise.png"
 import aiwatermark from "../assets/icons/aiwatermark.png"
 
@@ -53,10 +55,12 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={sprinkles} onClick={() => setAttackMode("sprinkles")}/>
                 <img className="navbar-item" src={fence} onClick={() => setAttackMode("fence")}/>
                 <img className="navbar-item" src={adversarialnoise} onClick={() => setAttackMode("adversarial noise")}/>
-                <img className="navbar-item" src={conversion} onClick={() => setAttackMode("conversion")}/>
-                <img className="navbar-item" src={inflation} onClick={() => setAttackMode("inflation")}/>
+                <img className="navbar-item" src={crt} onClick={() => setAttackMode("crt")}/>
+                <img className="navbar-item" src={rgbsplit} onClick={() => setAttackMode("rgb split")}/>
             </div>
             <div className="navbar-row">
+                <img className="navbar-item" src={conversion} onClick={() => setAttackMode("conversion")}/>
+                <img className="navbar-item" src={inflation} onClick={() => setAttackMode("inflation")}/>
                 <img className="navbar-item" src={networkrandomizer} onClick={() => setAttackMode("network randomizer")}/>
                 <img className="navbar-item" src={networkshifter} onClick={() => setAttackMode("network shifter")}/>
                 <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
