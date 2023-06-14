@@ -24,6 +24,7 @@ import crt from "../assets/icons/crt.png"
 import rgbsplit from "../assets/icons/rgbsplit.png"
 import adversarialnoise from "../assets/icons/adversarialnoise.png"
 import aiwatermark from "../assets/icons/aiwatermark.png"
+import steganography from "../assets/icons/steganography.png"
 
 const NavBar: React.FunctionComponent = (props) => {
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
@@ -64,6 +65,9 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={networkrandomizer} onClick={() => setAttackMode("network randomizer")}/>
                 <img className="navbar-item" src={networkshifter} onClick={() => setAttackMode("network shifter")}/>
                 <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
+            </div>
+            <div className="navbar-row">
+                <img className="navbar-item" src={steganography} onClick={() => setAttackMode("steganography")}/>
             </div>
         </div>
     )

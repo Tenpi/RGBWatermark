@@ -5,6 +5,7 @@ import ReactDom from "react-dom"
 import TitleBar from "./components/TitleBar"
 import NavBar from "./components/NavBar"
 import Footer from "./components/Footer"
+import DragAndDrop from "./components/DragAndDrop"
 import VersionDialog from "./components/VersionDialog"
 import RainbowOptions from "./components/RainbowOptions"
 import RainbowImage from "./components/RainbowImage"
@@ -24,6 +25,7 @@ import AdversarialNoise from "./components/AdversarialNoise"
 import CRT from "./components/CRT"
 import RGBSplit from "./components/RGBSplit"
 import AIWatermark from "./components/AIWatermark"
+import Steganography from "./components/Steganography"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -241,6 +243,8 @@ const App = () => {
       return (<CRT/>)
     } else if (attackMode === "rgb split") {
       return (<RGBSplit/>)
+    } else if (attackMode === "steganography") {
+      return (<Steganography/>)
     }
   }
 
@@ -318,6 +322,7 @@ const App = () => {
             <TextContext.Provider value={{text, setText}}>
             <WatermarkImageContext.Provider value={{watermarkImage, setWatermarkImage}}>
             <ImageContext.Provider value={{image, setImage}}>
+                <DragAndDrop/>
                 <TitleBar/>
                 <NavBar/>
                 <VersionDialog/>

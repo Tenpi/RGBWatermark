@@ -1,0 +1,273 @@
+@import "../../index.less";
+
+.steg-image-component {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.steg-upload-container {
+    display: flex;
+    justify-content: flex-start;
+    width: 65%;
+    flex-direction: column;
+}
+
+.steg-image-container {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    flex-direction: column;
+}
+
+.steg-options-container {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    flex-direction: column;
+}
+
+.steg-image {
+    width: auto;
+    height: auto;
+    max-width: 600px;
+    max-height: 400px;
+}
+
+.steg-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.steg-button {
+    background-color: var(--buttonBG);
+    border: none;
+    padding: 3px 5px;
+    display: flex;
+    border: 2px solid black;
+    align-items: center;
+}
+
+.steg-button-small {
+    background-color: var(--buttonBG);
+    border: none;
+    padding: 0px 4px;
+    display: flex;
+    border: 2px solid black;
+    align-items: center;
+}
+
+.steg-text {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 22px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.steg-button-text-small {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 15px;
+    text-align: center;
+    color: white;
+}
+
+.steg-text-mini {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 19px;
+    width: 30px;
+    margin-left: 5px;
+    text-decoration: none;
+}
+
+.steg-slider {
+    display: flex;
+    width: 800px;
+    height: 100%;
+    margin-left: 30px;
+    margin-right: 30px;
+    align-items: center;
+}
+
+.steg-slider-track {
+    display: flex;
+    height: 6px;
+    background-color: var(--sliderBG);
+}
+
+.steg-slider-track.steg-slider-track-1 {
+    background-color: var(--sliderBG);
+}
+
+.steg-slider-thumb {
+    opacity: 1;
+    display: flex;
+    margin-top: -1px;
+    // border-radius: 10;
+    height: 7px;
+    width: 7px;
+    background-color: var(--text);
+    &:active {
+        outline: none;
+    }
+    &:focus {
+        outline: none;
+    }
+}
+
+.steg-image-buttons-container {
+    display: flex;
+    align-items: center;
+}
+
+.steg-image-button {
+    margin-top: 10px;
+    margin-right: 20px;
+    border: 2px solid black;
+    background-color: var(--buttonBG);
+    border: none;
+    padding: 1px 5px;
+    display: flex;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 17px;
+    text-align: center;
+    color: white;
+    &:hover {
+        color: black;
+        cursor: steger;
+    }
+}
+
+.steg-checkbox {
+    margin-left: 15px;
+    width: 17px;
+    height: 17px;
+    cursor: steger;
+}
+
+.steg-image-output-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.steg-image-output-text {
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none;
+    font-size: 19px;
+    text-align: center;
+    color: var(--text);
+}
+
+.steg-image-output-text-mini {
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 18px;
+    margin-top: 1px;
+    width: 23px;
+    margin-left: 5px;
+    text-decoration: none;
+}
+
+.steg-image-output-input {
+    height: 35px;
+    width: 55px;
+    background-color: transparent;
+    border: none;
+    font-family: Arial, sans-serif;
+    font-size: 22px;
+    color: var(--text);
+    padding: 5px;
+}
+
+.steg-image-corner-img {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    height: 50px;
+    width: auto;
+}
+
+.steg-image-corner-img-2 {
+    position: absolute;
+    height: 50px;
+    width: auto;
+}
+
+.steg-image-relative-container {
+    position: relative;
+    width: max-content;
+}
+
+.steg-textarea {
+    background-color: var(--titlebarBG);
+    min-height: 200px;
+    outline: none;
+    width: 100%;
+    border: none;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 18px;
+    text-decoration: none;
+    cursor: text;
+    resize: none;
+}
+
+.steg-input {
+    background-color: var(--titlebarBG);
+    outline: none;
+    // width: 100%;
+    border: none;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    font-size: 18px;
+    text-decoration: none;
+    cursor: text;
+    margin-left: 10px;
+    text-align: left;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.steg-error {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #f5326d;
+    font-size: 16px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+@media screen and (max-width: 700px) {
+    .steg-image-component {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .steg-slider {
+        width: 165px;
+    }
+
+    .steg-image {
+        width: auto;
+        height: auto;
+        max-width: 500px;
+        max-height: 400px;
+    }
+
+    .steg-image-output-input {
+        height: 50px;
+        //font-size: 25px;
+    }
+}

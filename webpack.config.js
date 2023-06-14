@@ -2,6 +2,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin")
 const WebpackObfuscator = require("webpack-obfuscator")
+const CopyPlugin = require("copy-webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
 const path = require("path")
 const webpack = require("webpack")
@@ -23,14 +24,21 @@ module.exports = [
         {test: /\.less$/, exclude, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader", "less-loader"]},
         {test: /\.css$/, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader"]},
         {test: /\.(tsx?|jsx?)$/, exclude, use: [{loader: "ts-loader", options: {transpileOnly: true}}]},
-        {test: /\.m?js$/, resolve: {fullySpecified: false}}
+        {test: /\.m?js$/, resolve: {fullySpecified: false}},
+        {test: /jphs\.wasm$/, type: "javascript/auto", loader: "file-loader"}
       ]
     },
     plugins: [
       new ForkTsCheckerWebpackPlugin(),
       new HtmlWebpackPlugin({template: path.resolve(__dirname, "./index.html"), minify: true}),
       new MiniCssExtractPlugin({filename: "styles.css", chunkFilename: "styles.css"}),
-      new webpack.DefinePlugin({"process.env.FLUENTFFMPEG_COV": false})
+      new webpack.DefinePlugin({"process.env.FLUENTFFMPEG_COV": false}),
+      new CopyPlugin({
+        patterns: [
+            {from: "./structures/jphs.js", to: "[name][ext]"},
+            {from: "./structures/jphs.wasm", to: "[name][ext]"},
+        ],
+      })
     ],
     devServer: {contentBase: path.join(__dirname, "./dist"), port: 9000, compress: true, hot: true, historyApiFallback: true, publicPath: "/"},
   },
