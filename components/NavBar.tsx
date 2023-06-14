@@ -25,6 +25,7 @@ import rgbsplit from "../assets/icons/rgbsplit.png"
 import adversarialnoise from "../assets/icons/adversarialnoise.png"
 import aiwatermark from "../assets/icons/aiwatermark.png"
 import steganography from "../assets/icons/steganography.png"
+import invisiblewatermark from "../assets/icons/invisiblewatermark.png"
 
 const NavBar: React.FunctionComponent = (props) => {
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
@@ -68,6 +69,7 @@ const NavBar: React.FunctionComponent = (props) => {
             </div>
             <div className="navbar-row">
                 <img className="navbar-item" src={steganography} onClick={() => setAttackMode("steganography")}/>
+                <img className="navbar-item" src={invisiblewatermark} onClick={() => setAttackMode("invisible watermark")}/>
             </div>
         </div>
     )

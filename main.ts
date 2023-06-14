@@ -15,6 +15,10 @@ let networkRandomizerScript = path.join(app.getAppPath(), "../../scripts/network
 if (!fs.existsSync(networkRandomizerScript)) networkRandomizerScript = "./scripts/networkrandomizer.py"
 let networkShifterScript = path.join(app.getAppPath(), "../../scripts/networkshifter.py")
 if (!fs.existsSync(networkShifterScript)) networkShifterScript = "./scripts/networkshifter.py"
+let invisibleWatermarkScript = path.join(app.getAppPath(), "../../scripts/invisiblewatermark.py")
+if (!fs.existsSync(invisibleWatermarkScript)) invisibleWatermarkScript = "./scripts/invisiblewatermark.py"
+let invisibleWatermarkLocation = path.join(app.getAppPath(), "../../scripts/invisiblewatermark.txt")
+if (!fs.existsSync(invisibleWatermarkLocation)) invisibleWatermarkLocation = "./scripts/invisiblewatermark.txt"
 
 electronDL({openFolderWhenDone: true, showBadge: false})
 
@@ -27,12 +31,38 @@ ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
 })
 
+ipcMain.handle("invisible-watermark-decode", async (event, input: string, length: string) => {
+  try {
+    if (process.platform === "darwin") {
+      child_process.execSync(`/usr/local/bin/python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${invisibleWatermarkLocation}" -l "${length}"`)
+    } else {
+      child_process.execSync(`python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${invisibleWatermarkLocation}" -l "${length}"`)
+    }
+  } catch (error) {
+    return Promise.reject(error)
+  }
+  return fs.readFileSync(invisibleWatermarkLocation).toString()
+})
+
+ipcMain.handle("invisible-watermark-encode", async (event, input: string, output: string, watermark: string) => {
+  try {
+    if (process.platform === "darwin") {
+      child_process.execSync(`/usr/local/bin/python3 ${invisibleWatermarkScript} -a encode -i "${input}" -o "${output}" -w "${watermark}" -q 90`)
+    } else {
+      child_process.execSync(`python3 ${invisibleWatermarkScript} -a encode -i "${input}" -o "${output}" -w "${watermark}" -q 90`)
+    }
+  } catch (error) {
+    return Promise.reject(error)
+  }
+  shell.showItemInFolder(path.normalize(output))
+})
+
 ipcMain.handle("shift-network", async (event, input: string, output: string, shift: string, probability: string) => {
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 ${networkShifterScript} -i ${input} -o ${output} -s ${shift} -p ${probability}`)
+      child_process.execSync(`/usr/local/bin/python3 ${networkShifterScript} -i "${input}" -o "${output}" -s ${shift} -p ${probability}`)
     } else {
-      child_process.execSync(`python3 ${networkShifterScript} -i ${input} -o ${output} -s ${shift} -p ${probability}`)
+      child_process.execSync(`python3 ${networkShifterScript} -i "${input}" -o "${output}" -s ${shift} -p ${probability}`)
     }
   } catch (error) {
     return Promise.reject(error)
@@ -43,9 +73,9 @@ ipcMain.handle("shift-network", async (event, input: string, output: string, shi
 ipcMain.handle("randomize-network", async (event, input: string, output: string) => {
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 ${networkRandomizerScript} -i ${input} -o ${output}`)
+      child_process.execSync(`/usr/local/bin/python3 ${networkRandomizerScript} -i "${input}" -o "${output}"`)
     } else {
-      child_process.execSync(`python3 ${networkRandomizerScript} -i ${input} -o ${output}`)
+      child_process.execSync(`python3 ${networkRandomizerScript} -i "${input}" -o "${output}"`)
     }
   } catch (error) {
     return Promise.reject(error)

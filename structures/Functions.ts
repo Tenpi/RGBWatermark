@@ -5,6 +5,7 @@ import GifEncoder from "gif-encoder"
 import pixels from "image-pixels"
 import fileType from "magic-bytes.js"
 import gifFrames from "gif-frames"
+import crypto from "crypto"
 import {createFFmpeg, fetchFile} from "@ffmpeg/ffmpeg"
 import {hexToRgb, Color, Solver} from "./Color"
 
@@ -349,4 +350,33 @@ export default class Functions {
         c.set(b, a.length)
         return c
     }
+
+    public static padString = (str: string, length: number) => {
+        while (str.length <= length) {
+            str += " "
+        }
+        return str.slice(0, length)
+    }
+
+    public static encrypt = (data: string, encryptionKey: string) => {
+        const iv = Buffer.from(crypto.randomBytes(16))
+        const key = crypto.createHash("sha256").update(encryptionKey).digest("base64").slice(0, 16)
+        const cipher = crypto.createCipheriv("aes-128-gcm", key, iv)
+        const result = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()])
+        const authTag = cipher.getAuthTag()
+        return Buffer.concat([iv, authTag, result]).toString("hex")
+    }
+
+    public static decrypt = (data: string, encryptionKey: string) => {
+        let encrypted = Buffer.from(data)
+        const iv = encrypted.slice(0, 16)
+        encrypted = encrypted.slice(16)
+        const authTag = encrypted.slice(0, 16)
+        encrypted = encrypted.slice(16)
+        const key = crypto.createHash("sha256").update(encryptionKey).digest("base64").slice(0, 16)
+        const decipher = crypto.createDecipheriv("aes-128-gcm", key, iv)
+        decipher.setAuthTag(authTag)
+        let buffer = Buffer.concat([decipher.update(encrypted), decipher.final()])
+        return buffer.toString("hex")
+     }
 }

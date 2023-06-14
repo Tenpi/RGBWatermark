@@ -26,6 +26,7 @@ import CRT from "./components/CRT"
 import RGBSplit from "./components/RGBSplit"
 import AIWatermark from "./components/AIWatermark"
 import Steganography from "./components/Steganography"
+import InvisibleWatermark from "./components/InvisibleWatermark"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -245,6 +246,8 @@ const App = () => {
       return (<RGBSplit/>)
     } else if (attackMode === "steganography") {
       return (<Steganography/>)
+    } else if (attackMode === "invisible watermark") {
+      return (<InvisibleWatermark/>)
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "rgbwatermark",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Protects your art against AI/machine learning theft with a customizable rainbow watermark.",
   "main": "dist/main.js",
   "scripts": {
@@ -39,7 +39,8 @@
       "category": "public.app-category.utilities",
       "extraFiles": [
         "scripts/networkrandomizer.py",
-        "scripts/networkshifter.py"
+        "scripts/networkshifter.py",
+        "scripts/invisiblewatermark.py"
       ]
     },
     "dmg": {
@@ -57,7 +58,8 @@
       },
       "extraFiles": [
         "scripts/networkrandomizer.py",
-        "scripts/networkshifter.py"
+        "scripts/networkshifter.py",
+        "scripts/invisiblewatermark.py"
       ]
     },
     "nsis": {
@@ -77,7 +79,8 @@
       "category": "Utility",
       "extraFiles": [
         "scripts/networkrandomizer.py",
-        "scripts/networkshifter.py"
+        "scripts/networkshifter.py",
+        "scripts/invisiblewatermark.py"
       ]
     },
     "files": [
