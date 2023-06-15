@@ -40,7 +40,8 @@
       "extraFiles": [
         "scripts/networkrandomizer.py",
         "scripts/networkshifter.py",
-        "scripts/invisiblewatermark.py"
+        "scripts/invisiblewatermark.py",
+        "scripts/invisiblewatermark.txt"
       ]
     },
     "dmg": {
@@ -59,7 +60,8 @@
       "extraFiles": [
         "scripts/networkrandomizer.py",
         "scripts/networkshifter.py",
-        "scripts/invisiblewatermark.py"
+        "scripts/invisiblewatermark.py",
+        "scripts/invisiblewatermark.txt"
       ]
     },
     "nsis": {
@@ -80,7 +82,8 @@
       "extraFiles": [
         "scripts/networkrandomizer.py",
         "scripts/networkshifter.py",
-        "scripts/invisiblewatermark.py"
+        "scripts/invisiblewatermark.py",
+        "scripts/invisiblewatermark.txt"
       ]
     },
     "files": [

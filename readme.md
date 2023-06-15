@@ -15,7 +15,7 @@ The python commands use x64 versions of the packages, and will error if you have
 the x64 versions, run this command:
 
 ```
-sudo arch -x86_64 pip3 install torch pytorch_lightning safetensors onnx --compile --force-reinstall
+sudo arch -x86_64 pip3 install torch pytorch_lightning safetensors onnx opencv-python Pillow PyWavelets numpy --compile --force-reinstall
 ```
 
 ### Related
