@@ -1,4 +1,4 @@
-import {ipcRenderer} from "electron"
+import {app, ipcRenderer, session} from "electron"
 import fs from "fs"
 import path from "path"
 import GifEncoder from "gif-encoder"
@@ -6,8 +6,10 @@ import pixels from "image-pixels"
 import fileType from "magic-bytes.js"
 import gifFrames from "gif-frames"
 import crypto from "crypto"
+import axios from "axios"
 import {createFFmpeg, fetchFile} from "@ffmpeg/ffmpeg"
 import {hexToRgb, Color, Solver} from "./Color"
+import gdirecturl from "gddirecturl"
 
 const imageExtensions = [".jpg", ".jpeg", ".png", ".webp"]
 const videoExtensions = [".mp4", ".mov", ".avi", ".mkv", ".webm"]
@@ -383,5 +385,12 @@ export default class Functions {
      public static base64ToBuffer = (base64: string) => {
         const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)!
         return Buffer.from(matches[2], "base64")
+    }
+
+    public static downloadGoogleDriveFile = async (id: string) => {
+        const link = await gdirecturl.getMediaLink(id)
+        const headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 OPR/99.0.0.0"}
+        const data = await axios.get(link.src, {responseType: "arraybuffer", headers}).then((r) => r.data)
+        return data
     }
 }

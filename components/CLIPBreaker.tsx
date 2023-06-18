@@ -35,10 +35,21 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
     const [predictionText, setPredictionText] = useState("")
     const [computing, setComputing] = useState(false)
     const [predicting, setPredicting] = useState(false)
+    const [downloading, setDownloading] = useState(false)
     const [seed, setSeed] = useState(0)
     const [error, setError] = useState("")
     const ref = useRef<HTMLCanvasElement>(null)
     const history = useHistory()
+
+    useEffect(() => {
+        const downloadingModels = (event: any, downloading: boolean) => {
+            setDownloading(downloading)
+        }
+        ipcRenderer.on("clipbreaker-download", downloadingModels)
+        return () => {
+            ipcRenderer.removeListener("clipbreaker-download", downloadingModels)
+        }
+    }, [])
 
     const getFilter = () => {
         if (typeof window === "undefined") return
@@ -293,6 +304,14 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
         }
     }
 
+    const deleteModels = async () => {
+        await ipcRenderer.invoke("clipbreaker-delete-models")
+        setError("Deleted Models!")
+        setTimeout(() => {
+            setError("")
+        }, 2000)
+    }
+
     const getModelArray = () => {
         const arr = [] as string[]
         if (clipBreakerModels.deepdanbooru) arr.push("deepdanbooru")
@@ -414,8 +433,9 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
                     </button>
                 </div>
             </div>
-            {computing ? <span className="steg-error" style={{color: "#1d22e0", display: "flex", justifyContent: "center", fontSize: "17px", marginTop: "5px", marginBottom: "-5px"}}>Computing...</span> : null}
-            {predicting ? <span className="steg-error" style={{color: "#f43bbd", display: "flex", justifyContent: "center", fontSize: "17px", marginTop: "5px", marginBottom: "-5px"}}>Predicting...</span> : null}
+            {downloading ? <span className="steg-error" style={{color: "#ed2672", display: "flex", justifyContent: "center", fontSize: "17px", marginTop: "5px", marginBottom: "-5px"}}>Downloading Models...</span> : null}
+            {computing && !downloading ? <span className="steg-error" style={{color: "#1d22e0", display: "flex", justifyContent: "center", fontSize: "17px", marginTop: "5px", marginBottom: "-5px"}}>Computing...</span> : null}
+            {predicting && !downloading ? <span className="steg-error" style={{color: "#f43bbd", display: "flex", justifyContent: "center", fontSize: "17px", marginTop: "5px", marginBottom: "-5px"}}>Predicting...</span> : null}
             {error ? <span className="steg-error" style={{display: "flex", justifyContent: "center", fontSize: "17px", marginTop: "5px", marginBottom: "-5px"}}>{error}</span> : null}
             <div className="point-image-container" style={{marginTop: "5px"}}>
                 <div className="point-image-buttons-container">
@@ -433,6 +453,9 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
                 </div>
                 <div className="point-row" style={{marginTop: "5px", alignItems: "flex-start", width: "100%"}}>
                     <span className="point-text" style={{fontSize: "19px"}}>Download Python (<span className="network-link" style={{fontSize: "18px"}} onClick={() => shell.openExternal("https://www.python.org/downloads/")}>https://www.python.org/downloads/</span>)</span>
+                </div>
+                <div className="point-row" style={{marginTop: "5px", alignItems: "flex-start", width: "100%"}}>
+                    <button className="point-image-button" onClick={deleteModels} style={{marginLeft: "0px", marginRight: "20px", fontSize: "17px", backgroundColor: "#fe2196", marginTop: "-2px"}}>Delete Models</button>
                 </div>
             </div>
         </div>

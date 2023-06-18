@@ -1,3 +1,0 @@
-scripts/models/blip/blip.pt filter=lfs diff=lfs merge=lfs -text
-scripts/models/deepdanbooru/deepdanbooru.pt filter=lfs diff=lfs merge=lfs -text
-scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001 filter=lfs diff=lfs merge=lfs -text

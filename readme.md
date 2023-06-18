@@ -15,8 +15,10 @@ The python commands use x64 versions of the packages, and will error if you have
 the x64 versions, run this command:
 
 ```
-sudo arch -x86_64 pip3 install torch pytorch_lightning safetensors onnx opencv-python Pillow PyWavelets numpy --compile --force-reinstall
+sudo arch -x86_64 pip3 install torch torchvision pytorch_lightning safetensors onnx opencv-python Pillow PyWavelets numpy torchattacks tensorflow-macos tensorflow-metal realesrgan pandas transformers==4.16 timm fairscale sentencepiece psutil --compile --force-reinstall
 ```
+
+If you're getting an error on another platform, try installing these packages. (Remove sudo arch -x86_64) from the command, and change tensorflow-macos tensorflow-metal to tensorflow.
 
 ### Related
 

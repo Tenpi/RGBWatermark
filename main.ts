@@ -1,4 +1,4 @@
-import {app, BrowserWindow, dialog, globalShortcut, ipcMain, shell} from "electron"
+import {app, BrowserWindow, dialog, globalShortcut, ipcMain, shell, session} from "electron"
 import Store from "electron-store"
 import {autoUpdater} from "electron-updater"
 import sharp from "sharp"
@@ -11,18 +11,20 @@ import functions from "./structures/Functions"
 import child_process from "child_process"
 import util from "util"
 import electronDL from "electron-dl"
+import axios from "axios"
+let packaged = fs.existsSync(path.join(app.getAppPath(), "../../scripts/clipbreaker.py"))
 let writeLocation = path.join(app.getAppPath(), "../../scripts/output.txt")
-if (!fs.existsSync(writeLocation)) writeLocation = "./scripts/output.txt"
+if (!packaged) writeLocation = "./scripts/output.txt"
 let tempImgLocation = path.join(app.getAppPath(), "../../scripts/temp.png")
-if (!fs.existsSync(tempImgLocation)) tempImgLocation = "./scripts/temp.png"
+if (!packaged) tempImgLocation = "./scripts/temp.png"
 let networkRandomizerScript = path.join(app.getAppPath(), "../../scripts/networkrandomizer.py")
 if (!fs.existsSync(networkRandomizerScript)) networkRandomizerScript = "./scripts/networkrandomizer.py"
 let networkShifterScript = path.join(app.getAppPath(), "../../scripts/networkshifter.py")
 if (!fs.existsSync(networkShifterScript)) networkShifterScript = "./scripts/networkshifter.py"
 let invisibleWatermarkScript = path.join(app.getAppPath(), "../../scripts/invisiblewatermark.py")
 if (!fs.existsSync(invisibleWatermarkScript)) invisibleWatermarkScript = "./scripts/invisiblewatermark.py"
-let clipBreakerScript = path.join(app.getAppPath(), "../../scripts/run_clipbreaker.py")
-if (!fs.existsSync(clipBreakerScript)) clipBreakerScript = "./scripts/run_clipbreaker.py"
+let clipBreakerScript = path.join(app.getAppPath(), "../../scripts/clipbreaker.py")
+if (!fs.existsSync(clipBreakerScript)) clipBreakerScript = "./scripts/clipbreaker.py"
 
 electronDL({openFolderWhenDone: true, showBadge: false})
 
@@ -35,8 +37,62 @@ ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
 })
 
+const deleteCLIPBreakModels = () => {
+  let deepbooruPath = packaged ? path.join(app.getAppPath(), 
+  "../../scripts/models/deepdanbooru/deepdanbooru.pt") 
+  : "./scripts/models/deepdanbooru/deepdanbooru.pt"
+  let wdtaggerPath = packaged ? path.join(app.getAppPath(), 
+  "../../scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001") 
+  : "./scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001"
+  let blipPath = packaged ? path.join(app.getAppPath(), 
+  "../../scripts/models/blip/blip.pt") 
+  : "./scripts/models/blip/blip.pt"
+  if (fs.existsSync(deepbooruPath)) fs.unlinkSync(deepbooruPath)
+  if (fs.existsSync(wdtaggerPath)) fs.unlinkSync(wdtaggerPath)
+  if (fs.existsSync(blipPath)) fs.unlinkSync(blipPath)
+}
+
+const downloadCLIPBreakModels = async (models: string[]) => {
+  if (models.includes("deepdanbooru")) {
+    let deepbooruPath = packaged ? path.join(app.getAppPath(), 
+    "../../scripts/models/deepdanbooru/deepdanbooru.pt") 
+    : "./scripts/models/deepdanbooru/deepdanbooru.pt"
+    if (!fs.existsSync(deepbooruPath)) {
+      window?.webContents.send("clipbreaker-download", true)
+      const model = await functions.downloadGoogleDriveFile("1dEJcDYYH-kRotHvLWe4UbqRWyTCvtxtK")
+      fs.writeFileSync(deepbooruPath, model)
+    }
+  }
+  if (models.includes("wdtagger")) {
+    let wdtaggerPath = packaged ? path.join(app.getAppPath(), 
+    "../../scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001") 
+    : "./scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001"
+    if (!fs.existsSync(wdtaggerPath)) {
+      window?.webContents.send("clipbreaker-download", true)
+      const model = await functions.downloadGoogleDriveFile("1CIFLNi1QLKM70c4iNH_hpMXkZriZ5psJ")
+      fs.writeFileSync(wdtaggerPath, model)
+    }
+  }
+  if (models.includes("blip")) {
+    let blipPath = packaged ? path.join(app.getAppPath(), 
+    "../../scripts/models/blip/blip.pt") 
+    : "./scripts/models/blip/blip.pt"
+    if (!fs.existsSync(blipPath)) {
+      window?.webContents.send("clipbreaker-download", true)
+      const model = await functions.downloadGoogleDriveFile("1j_xbJNvqAkqbSD8BxQdt6X_5p30Fzk8l")
+      fs.writeFileSync(blipPath, model)
+    }
+  }
+  window?.webContents.send("clipbreaker-download", false)
+}
+
+ipcMain.handle("clipbreaker-delete-models", async (event) => {
+  deleteCLIPBreakModels()
+})
+
 ipcMain.handle("clipbreaker-predict", async (event, base64: string, models: string[]) => {
   fs.writeFileSync(tempImgLocation, functions.base64ToBuffer(base64))
+  await downloadCLIPBreakModels(models)
   let modelStr = ""
   if (models.includes("deepdanbooru")) modelStr += "-d "
   if (models.includes("wdtagger")) modelStr += "-w "
@@ -54,6 +110,7 @@ ipcMain.handle("clipbreaker-predict", async (event, base64: string, models: stri
 })
 
 ipcMain.handle("clipbreaker-attack", async (event, input: string, models: string[], attack: string, epsilon: string) => {
+  await downloadCLIPBreakModels(models)
   let modelStr = ""
   if (models.includes("deepdanbooru")) modelStr += "-d "
   if (models.includes("wdtagger")) modelStr += "-w "
