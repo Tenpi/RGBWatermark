@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path, { resolve } from "path"
-import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, SVGColorRatioContext, SVGPreviewContext, patterns} from "../renderer"
+import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, patterns} from "../renderer"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import fileType from "magic-bytes.js"
@@ -31,8 +31,8 @@ const Conversion: React.FunctionComponent = (props) => {
     const {imageName, setImageName} = useContext(ImageNameContext)
     const {outputSize, setOutputSize} = useContext(OutputSizeContext)
     const {reverse, setReverse} = useContext(ReverseContext)
-    const {svgColorRatio, setSVGColorRatio} = useContext(SVGColorRatioContext)
-    const {previewSVG, setPreviewSVG} = useContext(SVGPreviewContext)
+    const [svgColorRatio, setSVGColorRatio] = useState(0)
+    const [previewSVG, setPreviewSVG] = useState(false)
     const [gifData, setGIFData] = useState(null) as any
     const [seed, setSeed] = useState(0)
     const [img, setImg] = useState(null as HTMLImageElement | null)
@@ -315,7 +315,7 @@ const Conversion: React.FunctionComponent = (props) => {
     }, [])
 
     useEffect(() => {
-        localStorage.setItem("svgColorRatio", svgColorRatio)
+        localStorage.setItem("svgColorRatio", String(svgColorRatio))
     }, [svgColorRatio])
 
     return (

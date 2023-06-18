@@ -19,3 +19,14 @@ scripts/build
 pyarmor.error.log
 test.py
 scripts/scripts
+scripts/output.txt
+scripts/temp.png
+scripts/models/blip/__pycache__
+scripts/models/deepdanbooru/__pycache__
+scripts/models/wdtagger/__pycache__
+scripts/clipbreaker.py
+scripts/run_clipbreaker.py
+scripts/pyarmor_runtime_000000
+scripts/models/blip/blip.pt
+scripts/models/deepdanbooru/deepdanbooru.pt
+scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001

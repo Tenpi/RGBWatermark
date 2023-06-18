@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState, useReducer} from "react"
 import {useHistory} from "react-router-dom"
-import {ImageContext, ImageNameContext} from "../renderer"
+import {ImageContext, ImageNameContext, ImagePathContext} from "../renderer"
 import {HashLink as Link} from "react-router-hash-link"
 import functions from "../structures/Functions"
 import path from "path"
@@ -15,6 +15,7 @@ const DragAndDrop: React.FunctionComponent = (props) => {
     const [visible, setVisible] = useState(false)
     const {image, setImage} = useContext(ImageContext)
     const {imageName, setImageName} = useContext(ImageNameContext)
+    const {imagePath, setImagePath} = useContext(ImagePathContext)
     const [uploadHover, setUploadHover] = useState(false)
     const history = useHistory()
 
@@ -72,7 +73,9 @@ const DragAndDrop: React.FunctionComponent = (props) => {
             fileReader.onloadend = async (f: any) => {
                 let bytes = new Uint8Array(f.target.result)
                 const result = fileType(bytes)?.[0] || {}
-                const jpg = result?.mime === "image/jpeg" || path.extname(file.name) === ".jpg"
+                const jpg = result?.mime === "image/jpeg" 
+                || path.extname(file.name) === ".jpg"
+                || path.extname(file.name) === ".jpeg"
                 const png = result?.mime === "image/png"
                 const gif = result?.mime === "image/gif"
                 const webp = result?.mime === "image/webp"
@@ -86,6 +89,7 @@ const DragAndDrop: React.FunctionComponent = (props) => {
                     const link = `${url}#.${result.typename}`
                     setImage(link)
                     setImageName(file.name.slice(0, 30))
+                    setImagePath(file.path)
                 }
                 resolve()
             }

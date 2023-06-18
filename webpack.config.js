@@ -16,7 +16,7 @@ module.exports = [
     node: {__dirname: false},
     output: {filename: "renderer.js", path: path.resolve(__dirname, "./dist"), publicPath: "./"},
     resolve: {extensions: [".js", ".jsx", ".ts", ".tsx"], mainFields: ["main", "module", "browser"], alias: {"react-dom$": "react-dom/profiling", "scheduler/tracing": "scheduler/tracing-profiling"}},
-    optimization: {minimize: true, minimizer: [new TerserJSPlugin({extractComments: false}), new WebpackObfuscator()], moduleIds: "named"},
+    optimization: {minimize: true, minimizer: [new TerserJSPlugin({extractComments: false})], moduleIds: "named"},
     module: {
       rules: [
         {test: /\.(jpe?g|png|gif|svg|mp3|wav|mp4|yml|txt|otf|ttf|svg|py)$/, exclude, use: [{loader: "file-loader", options: {name: "[path][name].[ext]"}}]},

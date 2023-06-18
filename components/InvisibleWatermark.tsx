@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
-import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, patterns} from "../renderer"
+import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, ImagePathContext, patterns} from "../renderer"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import fileType from "magic-bytes.js"
@@ -28,7 +28,7 @@ const InvisibleWatermark: React.FunctionComponent = (props) => {
     const [seed, setSeed] = useState(0)
     const [img, setImg] = useState(null as HTMLImageElement | null)
     const [destFolder, setDestFolder] = useState("")
-    const [imagePath, setImagePath] = useState("")
+    const {imagePath, setImagePath} = useContext(ImagePathContext)
     const [text, setText] = useState("")
     const [padLength, setPadLength] = useState("100")
     const [revealText, setRevealText] = useState("")
@@ -59,7 +59,9 @@ const InvisibleWatermark: React.FunctionComponent = (props) => {
             fileReader.onloadend = async (f: any) => {
                 let bytes = new Uint8Array(f.target.result)
                 const result = fileType(bytes)?.[0]
-                const jpg = result?.mime === "image/jpeg"
+                const jpg = result?.mime === "image/jpeg" 
+                || path.extname(file.name) === ".jpg"
+                || path.extname(file.name) === ".jpeg"
                 const png = result?.mime === "image/png"
                 const gif = result?.mime === "image/gif"
                 const webp = result?.mime === "image/webp"

@@ -11,14 +11,18 @@ import functions from "./structures/Functions"
 import child_process from "child_process"
 import util from "util"
 import electronDL from "electron-dl"
+let writeLocation = path.join(app.getAppPath(), "../../scripts/output.txt")
+if (!fs.existsSync(writeLocation)) writeLocation = "./scripts/output.txt"
+let tempImgLocation = path.join(app.getAppPath(), "../../scripts/temp.png")
+if (!fs.existsSync(tempImgLocation)) tempImgLocation = "./scripts/temp.png"
 let networkRandomizerScript = path.join(app.getAppPath(), "../../scripts/networkrandomizer.py")
 if (!fs.existsSync(networkRandomizerScript)) networkRandomizerScript = "./scripts/networkrandomizer.py"
 let networkShifterScript = path.join(app.getAppPath(), "../../scripts/networkshifter.py")
 if (!fs.existsSync(networkShifterScript)) networkShifterScript = "./scripts/networkshifter.py"
 let invisibleWatermarkScript = path.join(app.getAppPath(), "../../scripts/invisiblewatermark.py")
 if (!fs.existsSync(invisibleWatermarkScript)) invisibleWatermarkScript = "./scripts/invisiblewatermark.py"
-let invisibleWatermarkLocation = path.join(app.getAppPath(), "../../scripts/invisiblewatermark.txt")
-if (!fs.existsSync(invisibleWatermarkLocation)) invisibleWatermarkLocation = "./scripts/invisiblewatermark.txt"
+let clipBreakerScript = path.join(app.getAppPath(), "../../scripts/run_clipbreaker.py")
+if (!fs.existsSync(clipBreakerScript)) clipBreakerScript = "./scripts/run_clipbreaker.py"
 
 electronDL({openFolderWhenDone: true, showBadge: false})
 
@@ -31,17 +35,52 @@ ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
 })
 
-ipcMain.handle("invisible-watermark-decode", async (event, input: string, length: string) => {
+ipcMain.handle("clipbreaker-predict", async (event, base64: string, models: string[]) => {
+  fs.writeFileSync(tempImgLocation, functions.base64ToBuffer(base64))
+  let modelStr = ""
+  if (models.includes("deepdanbooru")) modelStr += "-d "
+  if (models.includes("wdtagger")) modelStr += "-w "
+  if (models.includes("blip")) modelStr += "-b "
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${invisibleWatermarkLocation}" -l "${length}"`)
+      child_process.execSync(`PYTORCH_ENABLE_MPS_FALLBACK=1 /usr/local/bin/python3 "${clipBreakerScript}" -m "predict" -i "${tempImgLocation}" -o "${writeLocation}" ${modelStr}`)
     } else {
-      child_process.execSync(`python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${invisibleWatermarkLocation}" -l "${length}"`)
+      child_process.execSync(`python3 "${clipBreakerScript}" -m "predict" -i "${tempImgLocation}" -o "${writeLocation}" ${modelStr}`)
     }
   } catch (error) {
     return Promise.reject(error)
   }
-  return fs.readFileSync(invisibleWatermarkLocation).toString()
+  return fs.readFileSync(writeLocation).toString()
+})
+
+ipcMain.handle("clipbreaker-attack", async (event, input: string, models: string[], attack: string, epsilon: string) => {
+  let modelStr = ""
+  if (models.includes("deepdanbooru")) modelStr += "-d "
+  if (models.includes("wdtagger")) modelStr += "-w "
+  if (models.includes("blip")) modelStr += "-b "
+  try {
+    if (process.platform === "darwin") {
+      child_process.execSync(`PYTORCH_ENABLE_MPS_FALLBACK=1 /usr/local/bin/python3 "${clipBreakerScript}" -m "attack" -i "${input}" -o "${tempImgLocation}" ${modelStr} -a "${attack}" -e "${epsilon}"`)
+    } else {
+      child_process.execSync(`python3 "${clipBreakerScript}" -m "attack" -i "${input}" -o "${tempImgLocation}" ${modelStr} -a "${attack}" -e "${epsilon}"`)
+    }
+  } catch (error) {
+    return Promise.reject(error)
+  }
+  return fs.readFileSync(tempImgLocation)
+})
+
+ipcMain.handle("invisible-watermark-decode", async (event, input: string, length: string) => {
+  try {
+    if (process.platform === "darwin") {
+      child_process.execSync(`/usr/local/bin/python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${writeLocation}" -l "${length}"`)
+    } else {
+      child_process.execSync(`python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${writeLocation}" -l "${length}"`)
+    }
+  } catch (error) {
+    return Promise.reject(error)
+  }
+  return fs.readFileSync(writeLocation).toString()
 })
 
 ipcMain.handle("invisible-watermark-encode", async (event, input: string, output: string, watermark: string) => {

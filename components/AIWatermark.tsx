@@ -299,7 +299,9 @@ const AIWatermark: React.FunctionComponent = (props) => {
                 fileReader.onloadend = async (f: any) => {
                     let bytes = new Uint8Array(f.target.result)
                     const result = fileType(bytes)?.[0]
-                    const jpg = result?.mime === "image/jpeg"
+                    const jpg = result?.mime === "image/jpeg" 
+                    || path.extname(file.name) === ".jpg"
+                    || path.extname(file.name) === ".jpeg"
                     const png = result?.mime === "image/png"
                     const gif = result?.mime === "image/gif"
                     const webp = result?.mime === "image/webp"

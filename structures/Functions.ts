@@ -379,4 +379,9 @@ export default class Functions {
         let buffer = Buffer.concat([decipher.update(encrypted), decipher.final()])
         return buffer.toString("hex")
      }
+
+     public static base64ToBuffer = (base64: string) => {
+        const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)!
+        return Buffer.from(matches[2], "base64")
+    }
 }

@@ -26,6 +26,7 @@ import adversarialnoise from "../assets/icons/adversarialnoise.png"
 import aiwatermark from "../assets/icons/aiwatermark.png"
 import steganography from "../assets/icons/steganography.png"
 import invisiblewatermark from "../assets/icons/invisiblewatermark.png"
+import clipbreaker from "../assets/icons/clipbreaker.png"
 
 const NavBar: React.FunctionComponent = (props) => {
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
@@ -65,11 +66,12 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={inflation} onClick={() => setAttackMode("inflation")}/>
                 <img className="navbar-item" src={networkrandomizer} onClick={() => setAttackMode("network randomizer")}/>
                 <img className="navbar-item" src={networkshifter} onClick={() => setAttackMode("network shifter")}/>
-                <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
             </div>
             <div className="navbar-row">
+                <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
                 <img className="navbar-item" src={steganography} onClick={() => setAttackMode("steganography")}/>
                 <img className="navbar-item" src={invisiblewatermark} onClick={() => setAttackMode("invisible watermark")}/>
+                <img className="navbar-item" src={clipbreaker} onClick={() => setAttackMode("clip breaker")}/>
             </div>
         </div>
     )

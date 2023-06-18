@@ -1,13 +1,13 @@
 {
   "name": "rgbwatermark",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Protects your art against AI/machine learning theft with a customizable rainbow watermark.",
   "main": "dist/main.js",
   "scripts": {
     "start": "npm run clean && webpack && npm run postedit && cross-env DEVELOPMENT=true electron dist/main.js",
     "clean": "del-cli ./dist",
     "network": "arch -x86_64 cythonize -i ./scripts/networkrandomizer.py",
-    "shifter": "arch -x86_64 cythonize -i ./scripts/networkshifter.py",
+    "clip": "pyarmor gen ./scripts/clipbreaker.py && cp -R ./dist/pyarmor_runtime_000000 ./scripts && cp ./dist/clipbreaker.py ./scripts/run_clipbreaker.py",
     "build": "npm run clean ./build && webpack && electron-builder -p never",
     "rebuild": "npm rebuild --runtime=electron --target=23.2.0 --disturl=https://atom.io/download/atom-shell --abi=113",
     "release": "npm run clean ./build && webpack && npm run postedit && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder -mwl -p always",
@@ -41,7 +41,17 @@
         "scripts/networkrandomizer.py",
         "scripts/networkshifter.py",
         "scripts/invisiblewatermark.py",
-        "scripts/invisiblewatermark.txt"
+        "scripts/pyarmor_runtime_000000",
+        "scripts/run_clipbreaker.py",
+        "scripts/models/upscaler.pt",
+        "scripts/models/blip/blip.py",
+        "scripts/models/blip/med_config.json",
+        "scripts/models/blip/med.py",
+        "scripts/models/blip/vit.py",
+        "scripts/models/wdtagger/selected_tags.csv",
+        "scripts/models/wdtagger/ASL.py",
+        "scripts/models/wdtagger/wdtagger/saved_model.pb",
+        "scripts/models/wdtagger/wdtagger/variables/variables.index"
       ]
     },
     "dmg": {
@@ -61,7 +71,17 @@
         "scripts/networkrandomizer.py",
         "scripts/networkshifter.py",
         "scripts/invisiblewatermark.py",
-        "scripts/invisiblewatermark.txt"
+        "scripts/pyarmor_runtime_000000",
+        "scripts/run_clipbreaker.py",
+        "scripts/models/upscaler.pt",
+        "scripts/models/blip/blip.py",
+        "scripts/models/blip/med_config.json",
+        "scripts/models/blip/med.py",
+        "scripts/models/blip/vit.py",
+        "scripts/models/wdtagger/selected_tags.csv",
+        "scripts/models/wdtagger/ASL.py",
+        "scripts/models/wdtagger/wdtagger/saved_model.pb",
+        "scripts/models/wdtagger/wdtagger/variables/variables.index"
       ]
     },
     "nsis": {
@@ -83,7 +103,17 @@
         "scripts/networkrandomizer.py",
         "scripts/networkshifter.py",
         "scripts/invisiblewatermark.py",
-        "scripts/invisiblewatermark.txt"
+        "scripts/pyarmor_runtime_000000",
+        "scripts/run_clipbreaker.py",
+        "scripts/models/upscaler.pt",
+        "scripts/models/blip/blip.py",
+        "scripts/models/blip/med_config.json",
+        "scripts/models/blip/med.py",
+        "scripts/models/blip/vit.py",
+        "scripts/models/wdtagger/selected_tags.csv",
+        "scripts/models/wdtagger/ASL.py",
+        "scripts/models/wdtagger/wdtagger/saved_model.pb",
+        "scripts/models/wdtagger/wdtagger/variables/variables.index"
       ]
     },
     "files": [

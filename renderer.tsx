@@ -27,6 +27,7 @@ import RGBSplit from "./components/RGBSplit"
 import AIWatermark from "./components/AIWatermark"
 import Steganography from "./components/Steganography"
 import InvisibleWatermark from "./components/InvisibleWatermark"
+import CLIPBreaker from "./components/CLIPBreaker"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -57,50 +58,7 @@ export const ImbalanceContext = React.createContext<any>(null)
 export const PosXContext = React.createContext<any>(null)
 export const PosYContext = React.createContext<any>(null)
 export const AttackModeContext = React.createContext<any>(null)
-export const PointSpacingContext = React.createContext<any>(null)
-export const PointSizeContext = React.createContext<any>(null)
-export const PointRandomnessContext = React.createContext<any>(null)
-export const PointBrightnessContext = React.createContext<any>(null)
-export const PointContrastContext = React.createContext<any>(null)
-export const PointMethodContext = React.createContext<any>(null)
-export const PointInvertContext = React.createContext<any>(null)
-export const PixelShiftContext = React.createContext<any>(null)
-export const PixelShiftSizeContext = React.createContext<any>(null)
-export const PixelShiftDirectionContext = React.createContext<any>(null)
-export const HighContrastStrengthContext = React.createContext<any>(null)
-export const HighContrastSizeContext = React.createContext<any>(null)
-export const HighContrastBrightnessContext = React.createContext<any>(null)
-export const HighContrastContrastContext = React.createContext<any>(null)
-export const HighContrastInvertContext = React.createContext<any>(null)
-export const HighContrastSpacingContext = React.createContext<any>(null)
-export const PixelationStrengthContext = React.createContext<any>(null)
-export const PixelationSizeContext = React.createContext<any>(null)
-export const PointShiftContext = React.createContext<any>(null)
-export const PointAngleContext = React.createContext<any>(null)
-export const PointVarianceContext = React.createContext<any>(null)
-export const NoiseAmountContext = React.createContext<any>(null)
-export const NoiseSizeContext = React.createContext<any>(null)
-export const NoiseSpacingContext = React.createContext<any>(null)
-export const NoiseHueContext = React.createContext<any>(null)
-export const NoiseSaturationContext = React.createContext<any>(null)
-export const NoiseBrightnessContext = React.createContext<any>(null)
-export const EdgeBlurRadiusContext = React.createContext<any>(null)
-export const EdgeBlurEdgeRadiusContext = React.createContext<any>(null)
-export const EdgeBlurSensitivityContext = React.createContext<any>(null)
-export const EdgeBlurShowEdgesContext = React.createContext<any>(null)
-export const PointFillContext = React.createContext<any>(null)
-export const PointAlphaContext = React.createContext<any>(null)
-export const SprinkleOpacityContext = React.createContext<any>(null)
-export const SprinklePointSizeContext = React.createContext<any>(null)
-export const SprinklePointSpacingContext = React.createContext<any>(null)
-export const SprinkleDuplicatesContext = React.createContext<any>(null)
-export const SprinkleSpacingContext = React.createContext<any>(null)
-export const SprinkleDirectionContext = React.createContext<any>(null)
-export const TriDirectionContext = React.createContext<any>(null)
-export const PixelationOpacityContext = React.createContext<any>(null)
-export const SVGColorRatioContext = React.createContext<any>(null)
-export const SVGPreviewContext = React.createContext<any>(null)
-export const AppendBytesContext = React.createContext<any>(null)
+export const ImagePathContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -159,51 +117,7 @@ const App = () => {
   const [posX, setPosX] = useState(0)
   const [posY, setPosY] = useState(0)
   const [attackMode, setAttackMode] = useState("rainbow watermarks")
-  const [pointSpacing, setPointSpacing] = useState(0)
-  const [pointRandomness, setPointRandomness] = useState(0)
-  const [pointBrightness, setPointBrightness] = useState(0)
-  const [pointContrast, setPointContrast] = useState(0)
-  const [pointSize, setPointSize] = useState(1)
-  const [pointMethod, setPointMethod] = useState("uniform")
-  const [pointInvert, setPointInvert] = useState(false)
-  const [pixelShift, setPixelShift] = useState(0)
-  const [pixelShiftSize, setPixelShiftSize] = useState(13)
-  const [pixelShiftDirection, setPixelShiftDirection] = useState("xy")
-  const [highContrastStrength, setHighContrastStrength] = useState(0)
-  const [highContrastSize, setHighContrastSize] = useState(1)
-  const [highContrastBrightness, setHighContrastBrightness] = useState(0)
-  const [highContrastContrast, setHighContrastContrast] = useState(0)
-  const [highContrastInvert, setHighContrastInvert] = useState(false)
-  const [highContrastSpacing, setHighContrastSpacing] = useState(1)
-  const [pixelationStrength, setPixelationStrength] = useState(0)
-  const [pixelationSize, setPixelationSize] = useState(1)
-  const [pointShift, setPointShift] = useState(0)
-  const [pointAngle, setPointAngle] = useState(0)
-  const [pointVariance, setPointVariance] = useState(0)
-  const [noiseAmount, setNoiseAmount] = useState(0)
-  const [noiseSize, setNoiseSize] = useState(10)
-  const [noiseSpacing, setNoiseSpacing] = useState(0)
-  const [noiseHue, setNoiseHue] = useState(0)
-  const [noiseSaturation, setNoiseSaturation] = useState(0)
-  const [noiseBrightness, setNoiseBrightness] = useState(0)
-  const [pixelateOpacity, setPixelateOpacity] = useState(0)
-  const [edgeBlurRadius, setEdgeBlurRadius] = useState(10)
-  const [edgeBlurEdgeRadius, setEdgeBlurEdgeRadius] = useState(3)
-  const [edgeBlurSensitivity, setEdgeBlurSensitivity] = useState(20)
-  const [edgeBlurShowEdges, setEdgeBlurShowEdges] = useState(false)
-  const [pointFill, setPointFill] = useState("#000000")
-  const [pointAlpha, setPointAlpha] = useState(true)
-  const [sprinklePointSize, setSprinklePointSize] = useState(3)
-  const [sprinklePointSpacing, setSprinklePointSpacing] = useState(100)
-  const [sprinkleDuplicates, setSprinkleDuplicates] = useState(4)
-  const [sprinkleSpacing, setSprinkleSpacing] = useState(35)
-  const [sprinkleOpacity, setSprinkleOpacity] = useState(100)
-  const [sprinkleDirection, setSprinkleDirection] = useState("45")
-  const [triDirection, setTriDirection] = useState("△")
-  const [pixelationOpacity, setPixelationOpacity] = useState(100)
-  const [svgColorRatio, setSVGColorRatio] = useState(0)
-  const [previewSVG, setPreviewSVG] = useState(false)
-  const [appendBytes, setAppendBytes] = useState(10)
+  const [imagePath, setImagePath] = useState("")
   
   useEffect(() => {
     ipcRenderer.on("debug", console.error)
@@ -248,55 +162,14 @@ const App = () => {
       return (<Steganography/>)
     } else if (attackMode === "invisible watermark") {
       return (<InvisibleWatermark/>)
+    } else if (attackMode === "clip breaker") {
+      return (<CLIPBreaker/>)
     }
   }
 
   return (
     <main className="app">
-            <AppendBytesContext.Provider value={{appendBytes, setAppendBytes}}>
-            <SVGPreviewContext.Provider value={{previewSVG, setPreviewSVG}}>
-            <SVGColorRatioContext.Provider value={{svgColorRatio, setSVGColorRatio}}>
-            <PixelationOpacityContext.Provider value={{pixelationOpacity, setPixelationOpacity}}>
-            <TriDirectionContext.Provider value={{triDirection, setTriDirection}}>
-            <SprinkleDirectionContext.Provider value={{sprinkleDirection, setSprinkleDirection}}>
-            <SprinkleOpacityContext.Provider value={{sprinkleOpacity, setSprinkleOpacity}}>
-            <SprinkleSpacingContext.Provider value={{sprinkleSpacing, setSprinkleSpacing}}>
-            <SprinkleDuplicatesContext.Provider value={{sprinkleDuplicates, setSprinkleDuplicates}}>
-            <SprinklePointSpacingContext.Provider value={{sprinklePointSpacing, setSprinklePointSpacing}}>
-            <SprinklePointSizeContext.Provider value={{sprinklePointSize, setSprinklePointSize}}>
-            <PointAlphaContext.Provider value={{pointAlpha, setPointAlpha}}>
-            <PointFillContext.Provider value={{pointFill, setPointFill}}>
-            <EdgeBlurShowEdgesContext.Provider value={{edgeBlurShowEdges, setEdgeBlurShowEdges}}>
-            <EdgeBlurSensitivityContext.Provider value={{edgeBlurSensitivity, setEdgeBlurSensitivity}}>
-            <EdgeBlurEdgeRadiusContext.Provider value={{edgeBlurEdgeRadius, setEdgeBlurEdgeRadius}}>
-            <EdgeBlurRadiusContext.Provider value={{edgeBlurRadius, setEdgeBlurRadius}}>
-            <NoiseBrightnessContext.Provider value={{noiseBrightness, setNoiseBrightness}}>
-            <NoiseSaturationContext.Provider value={{noiseSaturation, setNoiseSaturation}}>
-            <NoiseHueContext.Provider value={{noiseHue, setNoiseHue}}>
-            <NoiseSpacingContext.Provider value={{noiseSpacing, setNoiseSpacing}}>
-            <NoiseSizeContext.Provider value={{noiseSize, setNoiseSize}}>
-            <NoiseAmountContext.Provider value={{noiseAmount, setNoiseAmount}}>
-            <PointVarianceContext.Provider value={{pointVariance, setPointVariance}}>
-            <PointAngleContext.Provider value={{pointAngle, setPointAngle}}>
-            <PointShiftContext.Provider value={{pointShift, setPointShift}}>
-            <PixelationSizeContext.Provider value={{pixelationSize, setPixelationSize}}>
-            <PixelationStrengthContext.Provider value={{pixelationStrength, setPixelationStrength}}>
-            <HighContrastSpacingContext.Provider value={{highContrastSpacing, setHighContrastSpacing}}>
-            <HighContrastInvertContext.Provider value={{highContrastInvert, setHighContrastInvert}}>
-            <HighContrastContrastContext.Provider value={{highContrastContrast, setHighContrastContrast}}>
-            <HighContrastBrightnessContext.Provider value={{highContrastBrightness, setHighContrastBrightness}}>
-            <HighContrastSizeContext.Provider value={{highContrastSize, setHighContrastSize}}>
-            <HighContrastStrengthContext.Provider value={{highContrastStrength, setHighContrastStrength}}>
-            <PixelShiftDirectionContext.Provider value={{pixelShiftDirection, setPixelShiftDirection}}>
-            <PixelShiftSizeContext.Provider value={{pixelShiftSize, setPixelShiftSize}}>
-            <PixelShiftContext.Provider value={{pixelShift, setPixelShift}}>
-            <PointInvertContext.Provider value={{pointInvert, setPointInvert}}>
-            <PointMethodContext.Provider value={{pointMethod, setPointMethod}}>
-            <PointSizeContext.Provider value={{pointSize, setPointSize}}>
-            <PointContrastContext.Provider value={{pointContrast, setPointContrast}}>
-            <PointBrightnessContext.Provider value={{pointBrightness, setPointBrightness}}>
-            <PointRandomnessContext.Provider value={{pointRandomness, setPointRandomness}}>
-            <PointSpacingContext.Provider value={{pointSpacing, setPointSpacing}}>
+            <ImagePathContext.Provider value={{imagePath, setImagePath}}>
             <AttackModeContext.Provider value={{attackMode, setAttackMode}}>
             <PosYContext.Provider value={{posY, setPosY}}>
             <PosXContext.Provider value={{posX, setPosX}}>
@@ -361,50 +234,7 @@ const App = () => {
             </PosXContext.Provider>
             </PosYContext.Provider>
             </AttackModeContext.Provider>
-            </PointSpacingContext.Provider>
-            </PointRandomnessContext.Provider>
-            </PointBrightnessContext.Provider>
-            </PointContrastContext.Provider>
-            </PointSizeContext.Provider>
-            </PointMethodContext.Provider>
-            </PointInvertContext.Provider>
-            </PixelShiftContext.Provider>
-            </PixelShiftSizeContext.Provider>
-            </PixelShiftDirectionContext.Provider>
-            </HighContrastStrengthContext.Provider>
-            </HighContrastSizeContext.Provider>
-            </HighContrastBrightnessContext.Provider>
-            </HighContrastContrastContext.Provider>
-            </HighContrastInvertContext.Provider>
-            </HighContrastSpacingContext.Provider>
-            </PixelationStrengthContext.Provider>
-            </PixelationSizeContext.Provider>
-            </PointShiftContext.Provider>
-            </PointAngleContext.Provider>
-            </PointVarianceContext.Provider>
-            </NoiseAmountContext.Provider>
-            </NoiseSizeContext.Provider>
-            </NoiseSpacingContext.Provider>
-            </NoiseHueContext.Provider>
-            </NoiseSaturationContext.Provider>
-            </NoiseBrightnessContext.Provider>
-            </EdgeBlurRadiusContext.Provider>
-            </EdgeBlurEdgeRadiusContext.Provider>
-            </EdgeBlurSensitivityContext.Provider>
-            </EdgeBlurShowEdgesContext.Provider>
-            </PointFillContext.Provider>
-            </PointAlphaContext.Provider>
-            </SprinklePointSizeContext.Provider>
-            </SprinklePointSpacingContext.Provider>
-            </SprinkleDuplicatesContext.Provider>
-            </SprinkleSpacingContext.Provider>
-            </SprinkleOpacityContext.Provider>
-            </SprinkleDirectionContext.Provider>
-            </TriDirectionContext.Provider>
-            </PixelationOpacityContext.Provider>
-            </SVGColorRatioContext.Provider>
-            </SVGPreviewContext.Provider>
-            </AppendBytesContext.Provider>
+            </ImagePathContext.Provider>
     </main>
   )
 }

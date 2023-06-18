@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
-import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, AppendBytesContext, patterns} from "../renderer"
+import {ImageContext, OutputSizeContext, ImageNameContext, ReverseContext, patterns} from "../renderer"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import fileType from "magic-bytes.js"
@@ -21,7 +21,7 @@ const Inflation: React.FunctionComponent = (props) => {
     const {imageName, setImageName} = useContext(ImageNameContext)
     const {outputSize, setOutputSize} = useContext(OutputSizeContext)
     const {reverse, setReverse} = useContext(ReverseContext)
-    const {appendBytes, setAppendBytes} = useContext(AppendBytesContext)
+    const [appendBytes, setAppendBytes] = useState("10")
     const [gifData, setGIFData] = useState(null) as any
     const [seed, setSeed] = useState(0)
     const [img, setImg] = useState(null as HTMLImageElement | null)
