@@ -25,7 +25,7 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
     const {outputSize, setOutputSize} = useContext(OutputSizeContext)
     const [clipBreakerOpacity, setCLIPBreakerOpacity] = useState(100)
     const [clipBreakerBlendMode, setCLIPBreakerBlendMode] = useState("source-over")
-    const [clipBreakerModels, setCLIPBreakerModels] = useState({deepdanbooru: true, blip: false, wdtagger: false})
+    const [clipBreakerModels, setCLIPBreakerModels] = useState({deepbooru: true, blip: false, wdtagger: false})
     const [clipBreakerEpsilon, setCLIPBreakerEpsilon] = useState(20)
     const [clipBreakerAttack, setCLIPBreakerAttack] = useState("fgsm")
     const [gifData, setGIFData] = useState(null) as any
@@ -222,7 +222,7 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
     }, [img, computedImg, clipBreakerBlendMode, clipBreakerOpacity, gifData])
 
     const reset = () => {
-        setCLIPBreakerModels({deepdanbooru: true, blip: false, wdtagger: false})
+        setCLIPBreakerModels({deepbooru: true, blip: false, wdtagger: false})
         setCLIPBreakerOpacity(100)
         setCLIPBreakerBlendMode("source-over")
         setCLIPBreakerEpsilon(20)
@@ -314,7 +314,7 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
 
     const getModelArray = () => {
         const arr = [] as string[]
-        if (clipBreakerModels.deepdanbooru) arr.push("deepdanbooru")
+        if (clipBreakerModels.deepbooru) arr.push("deepbooru")
         if (clipBreakerModels.blip) arr.push("blip")
         if (clipBreakerModels.wdtagger) arr.push("wdtagger")
         return arr
@@ -322,8 +322,8 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
 
     const appendModel = (model: string) => {
         const models = JSON.parse(JSON.stringify(clipBreakerModels))
-        if (model === "deepdanbooru") {
-            models.deepdanbooru = !models.deepdanbooru
+        if (model === "deepbooru") {
+            models.deepbooru = !models.deepbooru
         } else if (model === "blip") {
             models.blip = !models.blip
         } else if (model === "wdtagger") {
@@ -373,8 +373,8 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
             </div> : null}
             <div className="point-options-container">
                 <div className="point-row">
-                    <span className="point-text-mini" style={{width: "auto", fontSize: "17px"}}>DeepDanbooru</span>
-                    <img className="point-checkbox" src={clipBreakerModels.deepdanbooru ? checkboxChecked : checkbox} onClick={() => appendModel("deepdanbooru")} style={{marginLeft: "5px"}}/>
+                    <span className="point-text-mini" style={{width: "auto", fontSize: "17px"}}>DeepBooru</span>
+                    <img className="point-checkbox" src={clipBreakerModels.deepbooru ? checkboxChecked : checkbox} onClick={() => appendModel("deepbooru")} style={{marginLeft: "5px"}}/>
                     <span className="point-text-mini" style={{width: "auto", fontSize: "17px"}}>WDTagger</span>
                     <img className="point-checkbox" src={clipBreakerModels.wdtagger ? checkboxChecked : checkbox} onClick={() => appendModel("wdtagger")} style={{marginLeft: "5px"}}/>
                     <span className="point-text-mini" style={{width: "auto", fontSize: "17px"}}>BLIP</span>

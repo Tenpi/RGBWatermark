@@ -28,6 +28,8 @@ if (!fs.existsSync(clipBreakerScript)) clipBreakerScript = "./scripts/clipbreake
 
 electronDL({openFolderWhenDone: true, showBadge: false})
 
+const exec = util.promisify(child_process.exec)
+
 require("@electron/remote/main").initialize()
 process.setMaxListeners(0)
 let window: Electron.BrowserWindow | null
@@ -39,8 +41,8 @@ ipcMain.handle("init-settings", () => {
 
 const deleteCLIPBreakModels = () => {
   let deepbooruPath = packaged ? path.join(app.getAppPath(), 
-  "../../scripts/models/deepdanbooru/deepdanbooru.pt") 
-  : "./scripts/models/deepdanbooru/deepdanbooru.pt"
+  "../../scripts/models/deepbooru/deepbooru.pt") 
+  : "./scripts/models/deepbooru/deepbooru.pt"
   let wdtaggerPath = packaged ? path.join(app.getAppPath(), 
   "../../scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001") 
   : "./scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001"
@@ -53,10 +55,10 @@ const deleteCLIPBreakModels = () => {
 }
 
 const downloadCLIPBreakModels = async (models: string[]) => {
-  if (models.includes("deepdanbooru")) {
+  if (models.includes("deepbooru")) {
     let deepbooruPath = packaged ? path.join(app.getAppPath(), 
-    "../../scripts/models/deepdanbooru/deepdanbooru.pt") 
-    : "./scripts/models/deepdanbooru/deepdanbooru.pt"
+    "../../scripts/models/deepbooru/deepbooru.pt") 
+    : "./scripts/models/deepbooru/deepbooru.pt"
     if (!fs.existsSync(deepbooruPath)) {
       window?.webContents.send("clipbreaker-download", true)
       const model = await functions.downloadGoogleDriveFile("1dEJcDYYH-kRotHvLWe4UbqRWyTCvtxtK")
@@ -94,14 +96,14 @@ ipcMain.handle("clipbreaker-predict", async (event, base64: string, models: stri
   fs.writeFileSync(tempImgLocation, functions.base64ToBuffer(base64))
   await downloadCLIPBreakModels(models)
   let modelStr = ""
-  if (models.includes("deepdanbooru")) modelStr += "-d "
+  if (models.includes("deepbooru")) modelStr += "-d "
   if (models.includes("wdtagger")) modelStr += "-w "
   if (models.includes("blip")) modelStr += "-b "
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`PYTORCH_ENABLE_MPS_FALLBACK=1 /usr/local/bin/python3 "${clipBreakerScript}" -m "predict" -i "${tempImgLocation}" -o "${writeLocation}" ${modelStr}`)
+      await exec(`PYTORCH_ENABLE_MPS_FALLBACK=1 /usr/local/bin/python3 "${clipBreakerScript}" -m "predict" -i "${tempImgLocation}" -o "${writeLocation}" ${modelStr}`)
     } else {
-      child_process.execSync(`python3 "${clipBreakerScript}" -m "predict" -i "${tempImgLocation}" -o "${writeLocation}" ${modelStr}`)
+      await exec(`python3 "${clipBreakerScript}" -m "predict" -i "${tempImgLocation}" -o "${writeLocation}" ${modelStr}`)
     }
   } catch (error) {
     return Promise.reject(error)
@@ -112,14 +114,14 @@ ipcMain.handle("clipbreaker-predict", async (event, base64: string, models: stri
 ipcMain.handle("clipbreaker-attack", async (event, input: string, models: string[], attack: string, epsilon: string) => {
   await downloadCLIPBreakModels(models)
   let modelStr = ""
-  if (models.includes("deepdanbooru")) modelStr += "-d "
+  if (models.includes("deepbooru")) modelStr += "-d "
   if (models.includes("wdtagger")) modelStr += "-w "
   if (models.includes("blip")) modelStr += "-b "
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`PYTORCH_ENABLE_MPS_FALLBACK=1 /usr/local/bin/python3 "${clipBreakerScript}" -m "attack" -i "${input}" -o "${tempImgLocation}" ${modelStr} -a "${attack}" -e "${epsilon}"`)
+      await exec(`PYTORCH_ENABLE_MPS_FALLBACK=1 /usr/local/bin/python3 "${clipBreakerScript}" -m "attack" -i "${input}" -o "${tempImgLocation}" ${modelStr} -a "${attack}" -e "${epsilon}"`)
     } else {
-      child_process.execSync(`python3 "${clipBreakerScript}" -m "attack" -i "${input}" -o "${tempImgLocation}" ${modelStr} -a "${attack}" -e "${epsilon}"`)
+      await exec(`python3 "${clipBreakerScript}" -m "attack" -i "${input}" -o "${tempImgLocation}" ${modelStr} -a "${attack}" -e "${epsilon}"`)
     }
   } catch (error) {
     return Promise.reject(error)
@@ -130,9 +132,9 @@ ipcMain.handle("clipbreaker-attack", async (event, input: string, models: string
 ipcMain.handle("invisible-watermark-decode", async (event, input: string, length: string) => {
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${writeLocation}" -l "${length}"`)
+      await exec(`/usr/local/bin/python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${writeLocation}" -l "${length}"`)
     } else {
-      child_process.execSync(`python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${writeLocation}" -l "${length}"`)
+      await exec(`python3 "${invisibleWatermarkScript}" -a decode -i "${input}" -o "${writeLocation}" -l "${length}"`)
     }
   } catch (error) {
     return Promise.reject(error)
@@ -143,9 +145,9 @@ ipcMain.handle("invisible-watermark-decode", async (event, input: string, length
 ipcMain.handle("invisible-watermark-encode", async (event, input: string, output: string, watermark: string) => {
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 ${invisibleWatermarkScript} -a encode -i "${input}" -o "${output}" -w "${watermark}" -q 90`)
+      await exec(`/usr/local/bin/python3 ${invisibleWatermarkScript} -a encode -i "${input}" -o "${output}" -w "${watermark}" -q 90`)
     } else {
-      child_process.execSync(`python3 ${invisibleWatermarkScript} -a encode -i "${input}" -o "${output}" -w "${watermark}" -q 90`)
+      await exec(`python3 ${invisibleWatermarkScript} -a encode -i "${input}" -o "${output}" -w "${watermark}" -q 90`)
     }
   } catch (error) {
     return Promise.reject(error)
@@ -156,9 +158,9 @@ ipcMain.handle("invisible-watermark-encode", async (event, input: string, output
 ipcMain.handle("shift-network", async (event, input: string, output: string, shift: string, probability: string) => {
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 ${networkShifterScript} -i "${input}" -o "${output}" -s ${shift} -p ${probability}`)
+      await exec(`/usr/local/bin/python3 ${networkShifterScript} -i "${input}" -o "${output}" -s ${shift} -p ${probability}`)
     } else {
-      child_process.execSync(`python3 ${networkShifterScript} -i "${input}" -o "${output}" -s ${shift} -p ${probability}`)
+      await exec(`python3 ${networkShifterScript} -i "${input}" -o "${output}" -s ${shift} -p ${probability}`)
     }
   } catch (error) {
     return Promise.reject(error)
@@ -169,9 +171,9 @@ ipcMain.handle("shift-network", async (event, input: string, output: string, shi
 ipcMain.handle("randomize-network", async (event, input: string, output: string) => {
   try {
     if (process.platform === "darwin") {
-      child_process.execSync(`/usr/local/bin/python3 ${networkRandomizerScript} -i "${input}" -o "${output}"`)
+      await exec(`/usr/local/bin/python3 ${networkRandomizerScript} -i "${input}" -o "${output}"`)
     } else {
-      child_process.execSync(`python3 ${networkRandomizerScript} -i "${input}" -o "${output}"`)
+      await exec(`python3 ${networkRandomizerScript} -i "${input}" -o "${output}"`)
     }
   } catch (error) {
     return Promise.reject(error)

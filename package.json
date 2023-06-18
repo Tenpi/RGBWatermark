@@ -1,6 +1,6 @@
 {
   "name": "rgbwatermark",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Protects your art against AI/machine learning theft with a customizable rainbow watermark.",
   "main": "dist/main.js",
   "scripts": {
@@ -52,7 +52,7 @@
         "scripts/models/wdtagger/wdtagger/saved_model.pb",
         "scripts/models/wdtagger/wdtagger/keras_metadata.pb",
         "scripts/models/wdtagger/wdtagger/variables/variables.index",
-        "scripts/models/deepdanbooru/deepdanbooru.py"
+        "scripts/models/deepbooru/deepbooru.py"
       ]
     },
     "dmg": {
@@ -83,7 +83,7 @@
         "scripts/models/wdtagger/wdtagger/saved_model.pb",
         "scripts/models/wdtagger/wdtagger/keras_metadata.pb",
         "scripts/models/wdtagger/wdtagger/variables/variables.index",
-        "scripts/models/deepdanbooru/deepdanbooru.py"
+        "scripts/models/deepbooru/deepbooru.py"
       ]
     },
     "nsis": {
@@ -116,7 +116,7 @@
         "scripts/models/wdtagger/wdtagger/saved_model.pb",
         "scripts/models/wdtagger/wdtagger/keras_metadata.pb",
         "scripts/models/wdtagger/wdtagger/variables/variables.index",
-        "scripts/models/deepdanbooru/deepdanbooru.py"
+        "scripts/models/deepbooru/deepbooru.py"
       ]
     },
     "files": [
