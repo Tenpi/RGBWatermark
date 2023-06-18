@@ -27,6 +27,3 @@ scripts/models/wdtagger/__pycache__
 scripts/clipbreaker.py
 scripts/run_clipbreaker.py
 scripts/pyarmor_runtime_000000
-scripts/models/blip/blip.pt
-scripts/models/deepdanbooru/deepdanbooru.pt
-scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001
