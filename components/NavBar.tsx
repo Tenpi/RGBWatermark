@@ -27,6 +27,12 @@ import aiwatermark from "../assets/icons/aiwatermark.png"
 import steganography from "../assets/icons/steganography.png"
 import invisiblewatermark from "../assets/icons/invisiblewatermark.png"
 import clipbreaker from "../assets/icons/clipbreaker.png"
+import glyphswap from "../assets/icons/glyphswap.png"
+import textspoof from "../assets/icons/textspoof.png"
+import bitcrush from "../assets/icons/bitcrush.png"
+import pitchshift from "../assets/icons/pitchshift.png"
+import blockreverse from "../assets/icons/blockreverse.png"
+import pinknoise from "../assets/icons/pinknoise.png"
 
 const NavBar: React.FunctionComponent = (props) => {
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
@@ -66,12 +72,19 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={inflation} onClick={() => setAttackMode("inflation")}/>
                 <img className="navbar-item" src={networkrandomizer} onClick={() => setAttackMode("network randomizer")}/>
                 <img className="navbar-item" src={networkshifter} onClick={() => setAttackMode("network shifter")}/>
+                <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
             </div>
             <div className="navbar-row">
-                <img className="navbar-item" src={aiwatermark} onClick={() => setAttackMode("ai watermark")}/>
                 <img className="navbar-item" src={steganography} onClick={() => setAttackMode("steganography")}/>
                 <img className="navbar-item" src={invisiblewatermark} onClick={() => setAttackMode("invisible watermark")}/>
                 <img className="navbar-item" src={clipbreaker} onClick={() => setAttackMode("clip breaker")}/>
+                <img className="navbar-item" src={glyphswap} onClick={() => setAttackMode("glyph swap")}/>
+                <img className="navbar-item" src={textspoof} onClick={() => setAttackMode("text spoof")}/>
+            </div>
+            <div className="navbar-row">
+                <img className="navbar-item" src={bitcrush} onClick={() => setAttackMode("bitcrush")}/>
+                <img className="navbar-item" src={pitchshift} onClick={() => setAttackMode("pitch shift")}/>
+                <img className="navbar-item" src={blockreverse} onClick={() => setAttackMode("block reverse")}/>
             </div>
         </div>
     )

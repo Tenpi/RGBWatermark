@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState, useReducer} from "react"
 import {useHistory} from "react-router-dom"
-import {ImageContext, ImageNameContext, ImagePathContext} from "../renderer"
+import {ImageContext, ImageNameContext, ImagePathContext, AudioNameContext, AudioContext} from "../renderer"
 import {HashLink as Link} from "react-router-hash-link"
 import functions from "../structures/Functions"
 import path from "path"
@@ -16,6 +16,8 @@ const DragAndDrop: React.FunctionComponent = (props) => {
     const {image, setImage} = useContext(ImageContext)
     const {imageName, setImageName} = useContext(ImageNameContext)
     const {imagePath, setImagePath} = useContext(ImagePathContext)
+    const {audio, setAudio} = useContext(AudioContext)
+    const {audioName, setAudioName} = useContext(AudioNameContext)
     const [uploadHover, setUploadHover] = useState(false)
     const history = useHistory()
 
@@ -97,12 +99,36 @@ const DragAndDrop: React.FunctionComponent = (props) => {
         })
     }
 
+    const loadAudio = async (file: any) => {
+        const fileReader = new FileReader()
+        await new Promise<void>((resolve) => {
+            fileReader.onloadend = async (f: any) => {
+                let bytes = new Uint8Array(f.target.result)
+                const result = fileType(bytes)?.[0] || {}
+                const wav = result?.mime === "audio/x-wav"
+                const mp3 = result?.mime === "audio/mpeg"
+                const ogg = result?.mime === "audio/ogg"
+                const aiff = result?.mime === "audio/x-aiff"
+                if (wav || mp3 || ogg || aiff) {
+                    const blob = new Blob([bytes])
+                    const url = URL.createObjectURL(blob)
+                    const link = `${url}#.${result.typename}`
+                    setAudio(link)
+                    setAudioName(file.name.slice(0, 30))
+                }
+                resolve()
+            }
+            fileReader.readAsArrayBuffer(file)
+        })
+    }
+
     const uploadDrop = (event: React.DragEvent) => {
         event.preventDefault()
         setUploadHover(false)
         const files = event.dataTransfer.files 
         if (!files?.[0]) return
         loadImage(files[0])
+        loadAudio(files[0])
     }
 
     return (

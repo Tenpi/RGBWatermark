@@ -14,6 +14,7 @@ module.exports = [
     entry: "./renderer",
     mode: "production",
     node: {__dirname: false},
+    experiments: {asyncWebAssembly: true},
     output: {filename: "renderer.js", path: path.resolve(__dirname, "./dist"), publicPath: "./"},
     resolve: {extensions: [".js", ".jsx", ".ts", ".tsx"], mainFields: ["main", "module", "browser"], alias: {"react-dom$": "react-dom/profiling", "scheduler/tracing": "scheduler/tracing-profiling"}},
     optimization: {minimize: true, minimizer: [new TerserJSPlugin({extractComments: false})], moduleIds: "named"},
@@ -25,7 +26,7 @@ module.exports = [
         {test: /\.css$/, use: [{loader: MiniCssExtractPlugin.loader}, "css-loader"]},
         {test: /\.(tsx?|jsx?)$/, exclude, use: [{loader: "ts-loader", options: {transpileOnly: true}}]},
         {test: /\.m?js$/, resolve: {fullySpecified: false}},
-        {test: /jphs\.wasm$/, type: "javascript/auto", loader: "file-loader"}
+        {test: /\.wasm$/, type: "javascript/auto", loader: "file-loader"}
       ]
     },
     plugins: [
@@ -35,9 +36,10 @@ module.exports = [
       new webpack.DefinePlugin({"process.env.FLUENTFFMPEG_COV": false}),
       new CopyPlugin({
         patterns: [
-            {from: "./structures/jphs.js", to: "[name][ext]"},
-            {from: "./structures/jphs.wasm", to: "[name][ext]"},
-        ],
+          {from: "structures/bitcrusher.js", to: "[name][ext]"},
+          {from: "structures/soundtouch.js", to: "[name][ext]"},
+          {from: "structures/phase-vocoder.js", to: "[name][ext]"}
+        ]
       })
     ],
     devServer: {contentBase: path.join(__dirname, "./dist"), port: 9000, compress: true, hot: true, historyApiFallback: true, publicPath: "/"},

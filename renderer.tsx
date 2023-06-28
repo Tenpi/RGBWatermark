@@ -28,6 +28,11 @@ import AIWatermark from "./components/AIWatermark"
 import Steganography from "./components/Steganography"
 import InvisibleWatermark from "./components/InvisibleWatermark"
 import CLIPBreaker from "./components/CLIPBreaker"
+import GlyphSwap from "./components/GlyphSwap"
+import TextSpoof from "./components/TextSpoof"
+import Bitcrush from "./components/Bitcrush"
+import PitchShift from "./components/PitchShift"
+import BlockReverse from "./components/BlockReverse"
 import "./index.less"
 
 export const ImageContext = React.createContext<any>(null)
@@ -60,6 +65,30 @@ export const PosYContext = React.createContext<any>(null)
 export const AttackModeContext = React.createContext<any>(null)
 export const ImagePathContext = React.createContext<any>(null)
 
+export const SiteHueContext = React.createContext<any>(null)
+export const SiteSaturationContext = React.createContext<any>(null)
+export const SiteLightnessContext = React.createContext<any>(null)
+
+export const AudioContext = React.createContext<any>(null)
+export const AudioNameContext = React.createContext<any>(null)
+export const AudioSpeedContext = React.createContext<any>(null)
+export const AudioReverseContext = React.createContext<any>(null)
+export const SourceNodeContext = React.createContext<any>(null)
+export const SecondsProgressContext = React.createContext<any>(null)
+export const ProgressContext = React.createContext<any>(null)
+export const VolumeContext = React.createContext<any>(null)
+export const PreviousVolumeContext = React.createContext<any>(null)
+export const PauseContext = React.createContext<any>(null)
+export const PreservesPitchContext = React.createContext<any>(null)
+export const DurationContext = React.createContext<any>(null)
+export const OriginalDurationContext = React.createContext<any>(null)
+export const StartTimeContext = React.createContext<any>(null)
+export const ElapsedTimeContext = React.createContext<any>(null)
+export const SeekToContext = React.createContext<any>(null)
+export const ReverseActiveContext = React.createContext<any>(null)
+export const UpdateEffectContext = React.createContext<any>(null)
+export const SavedTimeContext = React.createContext<any>(null)
+
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
 import asterisk from "./assets/patterns/asterisk.svg"
@@ -88,7 +117,12 @@ export const defaultColorStops = [
     {position: 1, color: "#ff3434"}
 ]
 
+let audioContext = new window.AudioContext()
+
 const App = () => {
+  const [siteHue, setSiteHue] = useState(189)
+  const [siteSaturation, setSiteSaturation] = useState(100)
+  const [siteLightness, setSiteLightness] = useState(50)
   const [image, setImage] = useState("")
   const [watermarkImage, setWatermarkImage] = useState("")
   const [text, setText] = useState("Sample")
@@ -118,6 +152,25 @@ const App = () => {
   const [posY, setPosY] = useState(0)
   const [attackMode, setAttackMode] = useState("rainbow watermarks")
   const [imagePath, setImagePath] = useState("")
+  const [audio, setAudio] = useState("")
+  const [audioName, setAudioName] = useState("")
+  const [audioSpeed, setAudioSpeed] = useState(1)
+  const [audioReverse, setAudioReverse] = useState(false)
+  const [sourceNode, setSourceNode] = useState(null)
+  const [secondsProgress, setSecondsProgress] = useState(0)
+  const [progress, setProgress] = useState(0)
+  const [volume, setVolume] = useState(0.75)
+  const [previousVolume, setPreviousVolume] = useState(0)
+  const [paused, setPaused] = useState(true)
+  const [preservesPitch, setPreservesPitch] = useState(true)
+  const [duration, setDuration] = useState(0)
+  const [originalDuration, setOriginalDuration] = useState(0)
+  const [startTime, setStartTime] = useState(0)
+  const [elapsedTime, setElapsedTime] = useState(0)
+  const [seekTo, setSeekTo] = useState(null) as any
+  const [reverseActive, setReverseActive] = useState(false)
+  const [updateEffect, setUpdateEffect] = useState(false)
+  const [savedTime, setSavedTime] = useState(0)
   
   useEffect(() => {
     ipcRenderer.on("debug", console.error)
@@ -164,11 +217,43 @@ const App = () => {
       return (<InvisibleWatermark/>)
     } else if (attackMode === "clip breaker") {
       return (<CLIPBreaker/>)
+    } else if (attackMode === "glyph swap") {
+      return (<GlyphSwap/>)
+    } else if (attackMode === "text spoof") {
+        return (<TextSpoof/>)
+    } else if (attackMode === "bitcrush") {
+        return (<Bitcrush audioContext={audioContext}/>)
+    } else if (attackMode === "pitch shift") {
+        return (<PitchShift audioContext={audioContext}/>)
+    } else if (attackMode === "block reverse") {
+        return (<BlockReverse audioContext={audioContext}/>)
     }
   }
 
   return (
     <main className="app">
+            <SiteLightnessContext.Provider value={{siteLightness, setSiteLightness}}>
+            <SiteSaturationContext.Provider value={{siteSaturation, setSiteSaturation}}>
+            <SiteHueContext.Provider value={{siteHue, setSiteHue}}>
+            <OriginalDurationContext.Provider value={{originalDuration, setOriginalDuration}}>
+            <SavedTimeContext.Provider value={{savedTime, setSavedTime}}>
+            <UpdateEffectContext.Provider value={{updateEffect, setUpdateEffect}}>
+            <ReverseActiveContext.Provider value={{reverseActive, setReverseActive}}>
+            <SeekToContext.Provider value={{seekTo, setSeekTo}}>
+            <ElapsedTimeContext.Provider value={{elapsedTime, setElapsedTime}}>
+            <StartTimeContext.Provider value={{startTime, setStartTime}}>
+            <DurationContext.Provider value={{duration, setDuration}}>
+            <PreservesPitchContext.Provider value={{preservesPitch, setPreservesPitch}}>
+            <PauseContext.Provider value={{paused, setPaused}}>
+            <PreviousVolumeContext.Provider value={{previousVolume, setPreviousVolume}}>
+            <VolumeContext.Provider value={{volume, setVolume}}>
+            <ProgressContext.Provider value={{progress, setProgress}}>
+            <SecondsProgressContext.Provider value={{secondsProgress, setSecondsProgress}}>
+            <SourceNodeContext.Provider value={{sourceNode, setSourceNode}}>
+            <AudioReverseContext.Provider value={{audioReverse, setAudioReverse}}>
+            <AudioSpeedContext.Provider value={{audioSpeed, setAudioSpeed}}>
+            <AudioNameContext.Provider value={{audioName, setAudioName}}>
+            <AudioContext.Provider value={{audio, setAudio}}>
             <ImagePathContext.Provider value={{imagePath, setImagePath}}>
             <AttackModeContext.Provider value={{attackMode, setAttackMode}}>
             <PosYContext.Provider value={{posY, setPosY}}>
@@ -235,6 +320,28 @@ const App = () => {
             </PosYContext.Provider>
             </AttackModeContext.Provider>
             </ImagePathContext.Provider>
+            </AudioContext.Provider>
+            </AudioNameContext.Provider>
+            </AudioSpeedContext.Provider>
+            </AudioReverseContext.Provider>
+            </SourceNodeContext.Provider>
+            </SecondsProgressContext.Provider>
+            </ProgressContext.Provider>
+            </VolumeContext.Provider>
+            </PreviousVolumeContext.Provider>
+            </PauseContext.Provider>
+            </PreservesPitchContext.Provider>
+            </DurationContext.Provider>
+            </StartTimeContext.Provider>
+            </ElapsedTimeContext.Provider>
+            </SeekToContext.Provider>
+            </ReverseActiveContext.Provider>
+            </UpdateEffectContext.Provider>
+            </SavedTimeContext.Provider>
+            </OriginalDurationContext.Provider>
+            </SiteHueContext.Provider>
+            </SiteSaturationContext.Provider>
+            </SiteLightnessContext.Provider>
     </main>
   )
 }

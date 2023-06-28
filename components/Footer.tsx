@@ -211,6 +211,30 @@ const Footer: React.FunctionComponent = (props) => {
                 <div className="footer-row">
                     <span className="footer-text-4">CLIP Breaker computes adversarial noise in order to break the interrogator. You can combine the noise from multiple models and check the predictions.</span>
                 </div> : null}
+                {attackMode === "glyph swap" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Glyph swapping swaps the glyphs of a font file, allowing you to post encrypted text online and display it normally.</span>
+                </div> : null}
+                {attackMode === "text spoof" ?
+                <div className="footer-row">
+                    <span className="footer-text-3">Text spoofing replaces the text characters with unicode look-alikes. It works on sites that you don't control, but it is easy to bypass. Text is automatically copied.</span>
+                </div> : null}
+                {attackMode === "bitcrush" ?
+                <div className="footer-row">
+                    <span className="footer-text">Bitcrush reduces the sample rate and/or bitdepth of the audio, which reduces the quality and makes it sound crushy.</span>
+                </div> : null}
+                {attackMode === "pitch shift" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Pitch shifting changes the pitch and/or speed of the audio. You can also apply this effect with a square LFO.</span>
+                </div> : null}
+                {attackMode === "block reverse" ?
+                <div className="footer-row">
+                    <span className="footer-text-2">Block reverse reverses the audio file, divides it into blocks, and plays the blocks in the forward direction.</span>
+                </div> : null}
+                {attackMode === "pink noise" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">Pink noise adds pink noise to the audio file at regular intervals.</span>
+                </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
                     <span className="footer-text-3">If you are using the watermarks with Glaze, it is better to add them before. If you want animation, download the ZIP file, glaze all the images, 

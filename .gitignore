@@ -22,6 +22,7 @@ scripts/scripts
 scripts/output.txt
 scripts/temp.png
 scripts/models/blip/__pycache__
+scripts/models/clip/__pycache__
 scripts/models/deepbooru/__pycache__
 scripts/models/wdtagger/__pycache__
 scripts/clipbreaker.py
@@ -30,3 +31,5 @@ scripts/pyarmor_runtime_000000
 scripts/models/deepbooru/deepbooru.pt
 scripts/models/wdtagger/wdtagger/variables/variables.data-00000-of-00001
 scripts/models/blip/blip.pt
+scripts/models/clip/clip.pt
+structures/confusables.json

@@ -455,7 +455,7 @@ const CLIPBreaker: React.FunctionComponent = (props) => {
                     <span className="point-text" style={{fontSize: "19px"}}>Download Python (<span className="network-link" style={{fontSize: "18px"}} onClick={() => shell.openExternal("https://www.python.org/downloads/")}>https://www.python.org/downloads/</span>)</span>
                 </div>
                 <div className="point-row" style={{marginTop: "5px", alignItems: "flex-start", width: "100%"}}>
-                    <button className="point-image-button" onClick={deleteModels} style={{marginLeft: "0px", marginRight: "20px", fontSize: "17px", backgroundColor: "#fe2196", marginTop: "-2px"}}>Delete Models</button>
+                    <button className="point-image-button" onClick={deleteModels} style={{marginLeft: "0px", marginRight: "20px", fontSize: "17px", backgroundColor: "#fe2196", marginTop: "5px"}}>Delete Models</button>
                 </div>
             </div>
         </div>

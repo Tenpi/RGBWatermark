@@ -10,17 +10,15 @@ import uploadIcon from "../assets/icons/upload.png"
 import xIcon from "../assets/icons/x.png"
 import checkboxChecked from "../assets/icons/checkbox-checked.png"
 import checkbox from "../assets/icons/checkbox.png"
-import {Image} from "image-js"
-import {RawFile, StegImage, utils} from "steg"
-import {scrypt} from "@noble/hashes/scrypt"
+import opentype from "opentype.js"
 import "./styles/steganography.less"
-import jphsJS from "../structures/jphs.js"
-import jphsWASM from "../structures/jphs.wasm"
+import woff2JS from "../structures/woff2.js"
+import woff2WASM from "../structures/woff2.wasm"
 
-const jphsModule = jphsJS({
+const woff2Module = woff2JS({
     locateFile(path: string) {
         if (path.endsWith(".wasm")) {
-            return jphsWASM
+            return woff2WASM
         }
         return path
     }
@@ -28,7 +26,7 @@ const jphsModule = jphsJS({
 
 let gifPos = 0
 
-const Steganography: React.FunctionComponent = (props) => {
+const GlyphSwap: React.FunctionComponent = (props) => {
     const {image, setImage} = useContext(ImageContext)
     const {imageName, setImageName} = useContext(ImageNameContext)
     const {outputSize, setOutputSize} = useContext(OutputSizeContext)
@@ -37,10 +35,12 @@ const Steganography: React.FunctionComponent = (props) => {
     const [seed, setSeed] = useState(0)
     const [img, setImg] = useState(null as HTMLImageElement | null)
     const [text, setText] = useState("")
-    const [encryptionKey, setEncryptionKey] = useState("")
-    const [filename, setFilename] = useState("secret.txt")
-    const [embedFile, setEmbedFile] = useState("")
-    const [embedFileName, setEmbedFileName] = useState("")
+    const [font, setFont] = useState("")
+    const [fontName, setFontName] = useState("")
+    const [replacementJSON, setReplacementJSON] = useState({})
+    const [replacementFile, setReplacementFile] = useState("")
+    const [preview, setPreview] = useState(false)
+    const [replacementFileName, setReplacementFileName] = useState("")
     const [error, setError] = useState("")
     const ref = useRef<HTMLCanvasElement>(null)
     const history = useHistory()
@@ -52,26 +52,35 @@ const Steganography: React.FunctionComponent = (props) => {
         return functions.calculateFilter(color)
     }
 
-    const loadImage = async (event: any) => {
+    const convertFromVecToUint8Array = (vector: any) => {
+        const arr = []
+        for (let i = 0, l = vector.size(); i < l; i++) {
+            // @ts-ignore
+            arr.push(vector.get(i))
+        }
+        return new Uint8Array(arr)
+    }
+
+    const loadFont = async (event: any) => {
         const file = event.target.files?.[0]
         if (!file) return
         const fileReader = new FileReader()
         await new Promise<void>((resolve) => {
             fileReader.onloadend = async (f: any) => {
                 let bytes = new Uint8Array(f.target.result)
-                const result = fileType(bytes)?.[0]
-                const jpg = result?.mime === "image/jpeg"
-                const png = result?.mime === "image/png"
-                const gif = result?.mime === "image/gif"
-                const webp = result?.mime === "image/webp"
-                const bmp = result?.mime === "image/bmp"
-                const avif = path.extname(file.name) === ".avif"
-                if (jpg || png || gif || webp || bmp || avif) {
+                const ttf = file.name.endsWith("ttf")
+                const otf = file.name.endsWith("otf")
+                const woff = file.name.endsWith("woff")
+                const woff2 = file.name.endsWith("woff2")
+                if (ttf || otf || woff || woff2) {
+                    if (woff2) {
+                        const vector = woff2Module.woff2Dec(bytes, bytes.byteLength)
+                        bytes = convertFromVecToUint8Array(vector)
+                    }
                     const blob = new Blob([bytes])
                     const url = URL.createObjectURL(blob)
-                    const link = `${url}#.${result.typename}`
-                    setImage(link)
-                    setImageName(file.name.slice(0, 30))
+                    setFont(url)
+                    setFontName(file.name.slice(0, 30))
                 }
                 resolve()
             }
@@ -80,17 +89,27 @@ const Steganography: React.FunctionComponent = (props) => {
         if (event.target) event.target.value = ""
     }
 
-    const loadFile = async (event: any) => {
+    const removeFont = () => {
+        setFont("")
+        setFontName("")
+    }
+
+    const loadReplacementFile = async (event: any) => {
         const file = event.target.files?.[0]
         if (!file) return
         const fileReader = new FileReader()
         await new Promise<void>((resolve) => {
             fileReader.onloadend = async (f: any) => {
                 let bytes = new Uint8Array(f.target.result)
-                const blob = new Blob([bytes])
-                const url = URL.createObjectURL(blob)
-                setEmbedFile(url)
-                setEmbedFileName(file.name.slice(0, 30))
+                const json = file.name.endsWith("json")
+                if (json) {
+                    const blob = new Blob([bytes])
+                    const url = URL.createObjectURL(blob)
+                    setReplacementFile(url)
+                    setReplacementFileName(file.name.slice(0, 30))
+                    const json = await fetch(url).then((r) => r.json())
+                    setReplacementJSON(json)
+                }
                 resolve()
             }
             fileReader.readAsArrayBuffer(file)
@@ -98,14 +117,9 @@ const Steganography: React.FunctionComponent = (props) => {
         if (event.target) event.target.value = ""
     }
 
-    const removeImage = () => {
-        setImage("")
-        setImageName("")
-    }
-
-    const removeEmbedFile = () => {
-        setEmbedFile("")
-        setEmbedFileName("")
+    const removeReplacementFile = () => {
+        setReplacementFile("")
+        setReplacementFileName("")
     }
 
     const getOutputDimensions = (imgOverride?: HTMLImageElement) => {
@@ -215,79 +229,69 @@ const Steganography: React.FunctionComponent = (props) => {
         }
     }, [img, gifData, seed])
 
-    const hide = async () => {
-        if (path.extname(image).toLowerCase() === ".png") {
-            let file = null as any
-            if (embedFile) {
-                const arrayBuffer = await fetch(embedFile).then((r) => r.arrayBuffer())
-                file = new RawFile(new Uint8Array(arrayBuffer), filename)
-            } else {
-                file = new RawFile(utils.utf8ToBytes(text), filename)
-            }
-            const png = new StegImage(img!)
-            const passwordKey = scrypt(encryptionKey, "klee", {N:2**16, r:8, p:1})
-            try {
-                const url = await png.hide(file, passwordKey)
-                functions.download(`${path.basename(imageName, path.extname(imageName))}_steganography.png`, url)
-            } catch {
-                setError("File too big to store!")
-                setTimeout(() => {setError("")}, 2000)
-            }
-        } else {
-            draw(0, true)
-            const dataURL = convert("image/jpeg") as string
-            const arrayBuffer = await fetch(dataURL).then((r) => r.arrayBuffer())
-            jphsModule.FS.writeFile("hide.jpg", new Uint8Array(arrayBuffer))
-            if (embedFile) {
-                const fileBuffer = await fetch(embedFile).then((r) => r.arrayBuffer())
-                jphsModule.FS.writeFile(filename, new Uint8Array(fileBuffer))
-            } else {
-                jphsModule.FS.writeFile(filename, text)
-            }
-            try {
-                jphsModule.ccall("hide", "number", ["string", "string", "string", "string"], ["hide.jpg", "output.jpg", filename, encryptionKey], null)
-                const contents = jphsModule.FS.readFile("output.jpg")
-                const blob = new Blob([contents])
-                const url = URL.createObjectURL(blob)
-                functions.download(`${path.basename(imageName, path.extname(imageName))}_steganography.jpg`, url)
-                jphsModule.FS.unlink("hide.jpg")
-                jphsModule.FS.unlink("output.jpg")
-                jphsModule.FS.unlink(filename)
-            } catch {
-                setError("File too big to store!")
-                setTimeout(() => {setError("")}, 2000)
-            }
+    const swapFont = async () => {
+        const fontObj = await opentype.load(font)
+        let replaceJSON = {}
+        let characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let remaining = characters.split("") as any
+        while (remaining.length) {
+            const randIndex = Math.floor(Math.random() * remaining.length)
+            replaceJSON[remaining[0]] = remaining[randIndex]
+            replaceJSON[remaining[randIndex]] = remaining[0]
+            remaining[0] = null 
+            remaining[randIndex] = null 
+            remaining = remaining.filter(Boolean)
         }
+        const keys = Object.keys(replaceJSON) 
+        const values = Object.values(replaceJSON)
+        let swapped = [] as any
+        for (let i = 0; i < keys.length; i++) {
+            const oldGlyph = fontObj.charToGlyph(keys[i])
+            const newGlyph = fontObj.charToGlyph(values[i])
+            if (swapped.includes(oldGlyph.name)) continue
+            swapped.push(oldGlyph.name)
+            swapped.push(newGlyph.name)
+            const tempCommands = oldGlyph.path.commands
+            oldGlyph.path.commands = newGlyph.path.commands
+            newGlyph.path.commands = tempCommands
+            const tempWidth = oldGlyph.advanceWidth
+            oldGlyph.advanceWidth = newGlyph.advanceWidth
+            newGlyph.advanceWidth = tempWidth
+            const tempIndex = oldGlyph.index
+            oldGlyph.index = newGlyph.index
+            newGlyph.index = tempIndex
+            const tempBound = [oldGlyph.xMin, oldGlyph.xMax, oldGlyph.yMin, oldGlyph.yMax]
+            oldGlyph.xMin = newGlyph.xMin
+            oldGlyph.xMax = newGlyph.xMax
+            oldGlyph.yMin = newGlyph.yMin
+            oldGlyph.yMax = newGlyph.yMax
+            newGlyph.xMin = tempBound[0]
+            newGlyph.xMax = tempBound[1]
+            newGlyph.yMin = tempBound[2]
+            newGlyph.yMax = tempBound[3]
+            fontObj.charToGlyph[keys[i]] = oldGlyph
+            fontObj.charToGlyph[values[i]] = newGlyph
+        }
+        const newBuffer = fontObj.toArrayBuffer()
+        const blob = new Blob([newBuffer])
+        const url = URL.createObjectURL(blob)
+        functions.download(`${path.basename(fontName, path.extname(fontName))}_swapped.ttf`, url)
+        const fontface = new FontFace("swapped", `url(${url})`)
+        const loaded = await fontface.load()
+        // @ts-ignore
+        document.fonts.add(loaded)
+        const blob2 = new Blob([JSON.stringify(replaceJSON)])
+        const url2 = URL.createObjectURL(blob2)
+        functions.download(`${path.basename(fontName, path.extname(fontName))}_replacemap.json`, url2)
+        setReplacementJSON(replaceJSON)
     }
 
-    const retrieve = async () => {
-        if (path.extname(image).toLowerCase() === ".png") {
-            const png = new StegImage(img!)
-            const passwordKey = scrypt(encryptionKey, "klee", {N:2**16, r:8, p:1})
-            try {
-                const file = await png.reveal(passwordKey)
-                const blob = new Blob([file.data])
-                const url = URL.createObjectURL(blob)
-                functions.download(filename, url)
-            } catch {
-                setError("Doesn't appear to have a message...")
-                setTimeout(() => {setError("")}, 2000)
-            }
-        } else if (path.extname(image).toLowerCase() === ".jpg" || path.extname(image).toLowerCase() === ".jpeg") {
-            const arrayBuffer = await fetch(image).then((r) => r.arrayBuffer())
-            jphsModule.FS.writeFile("seek.jpg", new Uint8Array(arrayBuffer))
-            try {
-                jphsModule.ccall("seek", "number", ["string", "string", "string"], ["seek.jpg", filename, encryptionKey], null)
-                const contents = jphsModule.FS.readFile(filename)
-                const blob = new Blob([contents])
-                const url = URL.createObjectURL(blob)
-                functions.download(filename, url)
-                jphsModule.FS.unlink("seek.jpg")
-            } catch {
-                setError("Doesn't appear to have a message...")
-                setTimeout(() => {setError("")}, 2000)
-            }
+    const swapText = () => {
+        const textArr = text.split("")
+        for (let i = 0; i < textArr.length; i++) {
+            if (replacementJSON[textArr[i]]) textArr[i] = replacementJSON[textArr[i]]
         }
+        setText(textArr.join(""))
     }
 
     return (
@@ -296,7 +300,7 @@ const Steganography: React.FunctionComponent = (props) => {
             <div className="steg-options-container">
                 <div className="steg-upload-container">
                     <div className="steg-row">
-                        <span className="steg-text">Image:</span>
+                        <span className="steg-text">Font:</span>
                     </div>
                     <div className="steg-row">
                         <label htmlFor="img" className="steg-button" style={{width: "92px"}}>
@@ -305,38 +309,30 @@ const Steganography: React.FunctionComponent = (props) => {
                                 <img className="button-image" src={uploadIcon}/>
                             </span>
                         </label>
-                        <input id="img" type="file" onChange={(event) => loadImage(event)}/>
-                        {image ? 
+                        <input id="img" type="file" onChange={(event) => loadFont(event)}/>
+                        {font ? 
                             <div className="button-image-name-container">
-                                <img className="button-image-icon" src={xIcon} onClick={removeImage}/>
-                                <span className="button-image-name">{imageName}</span>
+                                <img className="button-image-icon" src={xIcon} onClick={removeFont}/>
+                                <span className="button-image-name">{fontName}</span>
                             </div>
                         : null}
                     </div>
                 </div>
             </div>
             <canvas className="steg-image" ref={ref} style={{display: "none"}}></canvas>
-            {/* <div className="steg-image-bigcontainer">
-                {image ?
-                <div className="steg-image-container">
-                    <div className="steg-image-relative-container">
-                        <canvas className="steg-image" ref={ref}></canvas>
-                    </div>
-                </div> : null}
-            </div> */}
             <div className="steg-options-container">
                 <div className="steg-upload-container">
                     <div className="steg-row">
                         <label htmlFor="embedFile" className="steg-image-button" style={{backgroundColor: "#dd34a5", marginTop: "0px", marginBottom: "0px", marginLeft: "0px", marginRight: "0px"}}>
                             <span className="button-hover">
-                                <span className="button-text" style={{fontSize: "17px"}}>File</span>
+                                <span className="button-text" style={{fontSize: "17px"}}>Replacement File</span>
                             </span>
                         </label>
-                        <input id="embedFile" type="file" onChange={(event) => loadFile(event)}/>
-                        {embedFile ? 
+                        <input id="embedFile" type="file" onChange={(event) => loadReplacementFile(event)}/>
+                        {replacementFile ? 
                             <div className="button-image-name-container">
-                                <img className="button-image-icon" src={xIcon} style={{height: "12px"}} onClick={removeEmbedFile}/>
-                                <span className="button-image-name">{embedFileName}</span>
+                                <img className="button-image-icon" src={xIcon} style={{filter: functions.calculateFilter("#dd34a5"), height: "12px"}} onClick={removeReplacementFile}/>
+                                <span className="button-image-name">{replacementFileName}</span>
                             </div>
                         : null}
                     </div>
@@ -344,23 +340,17 @@ const Steganography: React.FunctionComponent = (props) => {
                         <span className="steg-text">Text:</span> 
                     </div>
                     <div className="steg-row">
-                        <textarea className="steg-textarea" spellCheck={false} value={text} onChange={(event) => setText(event.target.value)}></textarea>
-                    </div>
-                    <div className="steg-row">
-                        <span className="steg-text">Encryption Key:</span>
-                        <input className="steg-input" spellCheck={false} value={encryptionKey} onChange={(event) => setEncryptionKey(event.target.value)} style={{width: "200px"}}></input>
-                    </div>
-                    <div className="steg-row">
-                        <span className="steg-text">Filename:</span>
-                        <input className="steg-input" spellCheck={false} value={filename} onChange={(event) => setFilename(event.target.value)} style={{width: "100px"}}></input>
+                        <textarea className="steg-textarea" spellCheck={false} value={text} onChange={(event) => setText(event.target.value)}
+                        style={preview ? {fontFamily: "swapped"} : {}}></textarea>
                     </div>
                 </div>
             </div>
             {error ? <span className="steg-error">{error}</span> : null}
             <div className="steg-image-container">
                     <div className="steg-image-buttons-container">
-                        <button className="steg-image-button" onClick={hide} style={{backgroundColor: "#400bff"}}>Hide</button>
-                        <button className="steg-image-button" onClick={retrieve} style={{backgroundColor: "#ff0bc3"}}>Retrieve</button>
+                        <button className="steg-image-button" onClick={swapFont} style={{backgroundColor: "#400bff"}}>Swap Font</button>
+                        <button className="steg-image-button" onClick={swapText} style={{backgroundColor: "#ff0bc3"}}>Swap Text</button>
+                        <button className="steg-image-button" onClick={() => setPreview((prev: boolean) => !prev)} style={{backgroundColor: "#2d58f7"}}>Preview</button>
                     </div>
                 </div>
             </div>
@@ -368,4 +358,4 @@ const Steganography: React.FunctionComponent = (props) => {
     )
 }
 
-export default Steganography
+export default GlyphSwap

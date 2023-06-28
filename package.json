@@ -1,17 +1,16 @@
 {
   "name": "rgbwatermark",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Protects your art against AI/machine learning theft with a customizable rainbow watermark.",
   "main": "dist/main.js",
   "scripts": {
-    "start": "npm run clean && webpack && npm run postedit && cross-env DEVELOPMENT=true electron dist/main.js",
+    "start": "npm run clean && webpack && cross-env DEVELOPMENT=true electron dist/main.js",
     "clean": "del-cli ./dist",
     "network": "arch -x86_64 cythonize -i ./scripts/networkrandomizer.py",
     "clip": "pyarmor gen ./scripts/clipbreaker.py && cp -R ./dist/pyarmor_runtime_000000 ./scripts && cp ./dist/clipbreaker.py ./scripts/run_clipbreaker.py",
     "build": "npm run clean ./build && webpack && electron-builder -p never",
     "rebuild": "npm rebuild --runtime=electron --target=23.2.0 --disturl=https://atom.io/download/atom-shell --abi=113",
-    "release": "npm run clean ./build && webpack && npm run postedit && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder -mwl -p always",
-    "postedit": "node postedit.js"
+    "release": "npm run clean ./build && webpack && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder -mwl -p always"
   },
   "keywords": [
     "rainbow",
@@ -160,6 +159,7 @@
     "webpack-obfuscator": "^3.5.1"
   },
   "dependencies": {
+    "@dancecuts/soundtouchjs-scheduled-audio-worklet": "^0.1.24",
     "@electron/remote": "^2.0.1",
     "@ffmpeg/ffmpeg": "^0.11.6",
     "@jsquash/avif": "^1.0.2",
@@ -169,6 +169,7 @@
     "axios": "^1.4.0",
     "bmp-js": "^0.1.0",
     "bootstrap": "^4.6.0",
+    "browser-id3-writer": "^6.0.0",
     "canny-edge-detector": "^1.0.0",
     "canvg": "^4.0.1",
     "electron-dl": "^3.5.0",
@@ -182,8 +183,12 @@
     "images-meta": "github:tenpi/images-meta",
     "imagetracerjs": "^1.2.6",
     "jszip": "^3.10.1",
+    "lamejs": "github:zhuker/lamejs",
+    "libflacjs": "^5.4.0",
     "magic-bytes.js": "^1.0.14",
     "mime": "^3.0.0",
+    "music-metadata-browser": "^2.5.10",
+    "opentype.js": "^1.3.4",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.3",
     "react-dom": "^17.0.1",
@@ -194,6 +199,8 @@
     "steg": "^0.1.5",
     "svgo": "^3.0.2",
     "tga": "^1.0.7",
-    "utif": "^3.1.0"
+    "utif": "^3.1.0",
+    "vorbis-encoder-js": "^1.0.2",
+    "web-audio-beat-detector": "^8.1.49"
   }
 }
