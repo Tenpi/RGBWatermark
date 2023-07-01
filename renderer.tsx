@@ -33,8 +33,12 @@ import TextSpoof from "./components/TextSpoof"
 import Bitcrush from "./components/Bitcrush"
 import PitchShift from "./components/PitchShift"
 import BlockReverse from "./components/BlockReverse"
+import PinkNoise from "./components/PinkNoise"
+import Decimation from "./components/Decimation"
 import "./index.less"
 
+export const MobileContext = React.createContext<any>(null)
+export const EnableDragContext = React.createContext<any>(null)
 export const ImageContext = React.createContext<any>(null)
 export const WatermarkImageContext = React.createContext<any>(null)
 export const TextContext = React.createContext<any>(null)
@@ -74,6 +78,7 @@ export const AudioNameContext = React.createContext<any>(null)
 export const AudioSpeedContext = React.createContext<any>(null)
 export const AudioReverseContext = React.createContext<any>(null)
 export const SourceNodeContext = React.createContext<any>(null)
+export const EffectNodeContext = React.createContext<any>(null)
 export const SecondsProgressContext = React.createContext<any>(null)
 export const ProgressContext = React.createContext<any>(null)
 export const VolumeContext = React.createContext<any>(null)
@@ -88,6 +93,12 @@ export const SeekToContext = React.createContext<any>(null)
 export const ReverseActiveContext = React.createContext<any>(null)
 export const UpdateEffectContext = React.createContext<any>(null)
 export const SavedTimeContext = React.createContext<any>(null)
+
+export const ModelContext = React.createContext<any>(null)
+export const MTLContext = React.createContext<any>(null)
+export const TexturesContext = React.createContext<any>(null)
+export const TextureNamesContext = React.createContext<any>(null)
+export const ModelNameContext = React.createContext<any>(null)
 
 import square from "./assets/patterns/square.svg"
 import circle from "./assets/patterns/circle.svg"
@@ -120,6 +131,8 @@ export const defaultColorStops = [
 let audioContext = new window.AudioContext()
 
 const App = () => {
+  const [mobile, setMobile] = useState(false)
+  const [enableDrag, setEnableDrag] = useState(false)
   const [siteHue, setSiteHue] = useState(189)
   const [siteSaturation, setSiteSaturation] = useState(100)
   const [siteLightness, setSiteLightness] = useState(50)
@@ -157,6 +170,7 @@ const App = () => {
   const [audioSpeed, setAudioSpeed] = useState(1)
   const [audioReverse, setAudioReverse] = useState(false)
   const [sourceNode, setSourceNode] = useState(null)
+  const [effectNode, setEffectNode] = useState(null)
   const [secondsProgress, setSecondsProgress] = useState(0)
   const [progress, setProgress] = useState(0)
   const [volume, setVolume] = useState(0.75)
@@ -171,6 +185,11 @@ const App = () => {
   const [reverseActive, setReverseActive] = useState(false)
   const [updateEffect, setUpdateEffect] = useState(false)
   const [savedTime, setSavedTime] = useState(0)
+  const [model, setModel] = useState("")
+  const [mtl, setMTL] = useState("")
+  const [textures, setTextures] = useState([])
+  const [textureNames, setTextureNames] = useState([])
+  const [modelName, setModelName] = useState("")
   
   useEffect(() => {
     ipcRenderer.on("debug", console.error)
@@ -227,11 +246,23 @@ const App = () => {
         return (<PitchShift audioContext={audioContext}/>)
     } else if (attackMode === "block reverse") {
         return (<BlockReverse audioContext={audioContext}/>)
+    } else if (attackMode === "pink noise") {
+      return (<PinkNoise audioContext={audioContext}/>)
+    } else if (attackMode === "decimation") {
+      return (<Decimation/>)
     }
   }
 
   return (
     <main className="app">
+            <TextureNamesContext.Provider value={{textureNames, setTextureNames}}>
+            <TexturesContext.Provider value={{textures, setTextures}}>
+            <MTLContext.Provider value={{mtl, setMTL}}>
+            <ModelNameContext.Provider value={{modelName, setModelName}}>
+            <ModelContext.Provider value={{model, setModel}}>
+            <MobileContext.Provider value={{mobile, setMobile}}>
+            <EnableDragContext.Provider value={{enableDrag, setEnableDrag}}>
+            <EffectNodeContext.Provider value={{effectNode, setEffectNode}}>
             <SiteLightnessContext.Provider value={{siteLightness, setSiteLightness}}>
             <SiteSaturationContext.Provider value={{siteSaturation, setSiteSaturation}}>
             <SiteHueContext.Provider value={{siteHue, setSiteHue}}>
@@ -342,6 +373,14 @@ const App = () => {
             </SiteHueContext.Provider>
             </SiteSaturationContext.Provider>
             </SiteLightnessContext.Provider>
+            </EffectNodeContext.Provider>
+            </EnableDragContext.Provider>
+            </MobileContext.Provider>
+            </ModelContext.Provider>
+            </ModelNameContext.Provider>
+            </MTLContext.Provider>
+            </TexturesContext.Provider>
+            </TextureNamesContext.Provider>
     </main>
   )
 }

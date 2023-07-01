@@ -2,10 +2,11 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
+import {Dropdown, DropdownButton} from "react-bootstrap"
 import {SiteHueContext, SiteSaturationContext, SiteLightnessContext, AttackModeContext, AudioContext, 
 AudioNameContext, AudioSpeedContext, AudioReverseContext, SourceNodeContext, SecondsProgressContext, ProgressContext, VolumeContext,
 PreviousVolumeContext, PreservesPitchContext, StartTimeContext, ElapsedTimeContext, ReverseActiveContext, DurationContext, PauseContext,
-SeekToContext, UpdateEffectContext, SavedTimeContext, OriginalDurationContext, patterns} from "../renderer"
+SeekToContext, UpdateEffectContext, SavedTimeContext, OriginalDurationContext, EffectNodeContext, patterns} from "../renderer"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import audioReverseIcon from "../assets/icons/audio-reverse.png"
@@ -35,8 +36,8 @@ interface Props {
     audioContext: AudioContext
 }
 
-let pitchCorrectNode = null as any
 let gainNode = null as any
+let lfoNode = null as any
 
 const PitchShift: React.FunctionComponent<Props> = (props) => {
     const {audio, setAudio} = useContext(AudioContext)
@@ -48,8 +49,11 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
     const [pitchShift, setPitchShift] = useState(0)
     const [audioRate, setAudioRate] = useState(1)
     const [lfoMode, setLFOMode] = useState(false)
-    const [lfoRate, setLFORate] = useState(0)
+    const [lfoRate, setLFORate] = useState(1)
+    const [lfoShape, setLFOShape] = useState("square")
+    const [restartFlag, setRestartFlag] = useState(false)
     const {sourceNode, setSourceNode} = useContext(SourceNodeContext)
+    const {effectNode, setEffectNode} = useContext(EffectNodeContext)
     const [showSpeedDropdown, setShowSpeedDropdown] = useState(false)
     const [showVolumeSlider, setShowVolumeSlider] = useState(false)
     const [showSpeedSlider, setShowSpeedSlider] = useState(false)
@@ -170,101 +174,70 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         if (event.target) event.target.value = ""
     }
 
-    const renderLFO = async (normalBuffer: AudioBuffer, effectBuffer: AudioBuffer) => {
-        const normalWAV = functions.encodeWAV(normalBuffer)
-        const effectWAV = functions.encodeWAV(effectBuffer)
-        const normalArrayBuffer = await fetch(normalWAV).then((r) => r.arrayBuffer())
-        const effectArrayBuffer = await fetch(effectWAV).then((r) => r.arrayBuffer())
-        const normalArray = new Uint8Array(normalArrayBuffer)
-        const effectArray = new Uint8Array(effectArrayBuffer)
-        const header = normalArray.slice(0, 44)
-        const normalSamples = normalArray.slice(44)
-        const effectSamples = effectArray.slice(44)
-        const {bpm} = await functions.getBPM(normalBuffer)
-        const blockSize = Math.round(Math.ceil(60/bpm * normalBuffer.sampleRate) * ((2**lfoRate)/2))
-        let normalBlocks = [] as any
-        for (let i = 0; i < normalSamples.length; i+=blockSize) {
-            let block = [] as any
-            for (let j = i; j < i + blockSize; j++) {
-                block.push(normalSamples[j])
-            }
-            normalBlocks.push(block)
-        }
-        let effectBlocks = [] as any
-        for (let i = 0; i < effectSamples.length; i+=blockSize) {
-            let block = [] as any
-            for (let j = i; j < i + blockSize; j++) {
-                block.push(effectSamples[j])
-            }
-            effectBlocks.push(block)
-        }
-        let blockArray = [] as any
-        for (let i = 0; i < normalBlocks.length + effectBlocks.length; i+=2) {
-            blockArray.push(normalBlocks[i])
-            blockArray.push(effectBlocks[i+1])
-        }
-        blockArray = blockArray.flat(Infinity)
-        const array = [...header, ...blockArray]
-        const blob = new Blob([new Uint8Array(array)])
-        const url = URL.createObjectURL(blob)
-        const arrayBuffer = await fetch((url)).then((r) => r.arrayBuffer())
-        return audioContext.decodeAudioData(arrayBuffer)
-    }
-
-    const applyPitchShift = async () => {
+    const applyPitchShift = async (offset: number = 0) => {
         if (!audio) return
-        stop()
+        if (!offset) stop()
         const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
         let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+        setDuration(audioBuffer.duration / audioSpeed / audioRate)
+        setOriginalDuration(audioBuffer.duration)
         if (lfoMode) {
-            const original = await renderOriginal()
-            const effect = await render()
-            const rendered = await renderLFO(original, effect)
-            setDuration(rendered.duration / audioSpeed)
-            setOriginalDuration(rendered.duration)
+            const {bpm} = await functions.getBPM(audioBuffer)
             gainNode?.disconnect()
             gainNode = audioContext.createGain()
             gainNode.gain.value = volume 
-            await audioContext.audioWorklet.addModule("./phase-vocoder.js")
-            pitchCorrectNode?.disconnect()
-            pitchCorrectNode = new AudioWorkletNode(audioContext, "phase-vocoder-processor")
             await audioContext.audioWorklet.addModule("./soundtouch.js")
             sourceNode?.disconnect()
-            const source = createScheduledSoundTouchNode(audioContext, rendered)
+            effectNode?.disconnect()
+            const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
+            const effect = createScheduledSoundTouchNode(audioContext, audioBuffer)
             source.loop = true
+            effect.loop = true
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
+            source.parameters.get("tempo").value = audioRate
+            source.parameters.get("rate").value = audioSpeed
+            effect.parameters.get("pitch").value = pitchCorrect
+            effect.parameters.get("tempo").value = audioRate
+            effect.parameters.get("rate").value = audioSpeed
             await functions.timeout(100)
-            source.connect(pitchCorrectNode)
-            pitchCorrectNode.connect(gainNode)
+            await audioContext.audioWorklet.addModule("./lfo.js")
+            lfoNode?.disconnect()
+            lfoNode = new AudioWorkletNode(audioContext, "lfo-processor", {numberOfInputs: 2, outputChannelCount: [2]})
+            lfoNode.parameters.get("bpm").value = bpm
+            lfoNode.parameters.get("lfoRate").value = lfoRate
+            lfoNode.port.postMessage({lfoShape})
+            source.connect(lfoNode, 0, 0)
+            effect.connect(lfoNode, 0, 1)
+            lfoNode.connect(gainNode)
             gainNode.connect(audioContext.destination)
-            source.start()
+            source.start(0, offset)
+            effect.start(0, offset)
             setSourceNode(source)
+            setEffectNode(effect)
             setStartTime(audioContext.currentTime)
             audioContext.resume()
             setPaused(false)
         } else {
             if (audioReverse) audioBuffer = functions.reverseAudioBuffer(audioBuffer)
-            setDuration(audioBuffer.duration / audioSpeed)
-            setOriginalDuration(audioBuffer.duration)
-            await audioContext.audioWorklet.addModule("./phase-vocoder.js")
-            pitchCorrectNode?.disconnect()
-            pitchCorrectNode = new AudioWorkletNode(audioContext, "phase-vocoder-processor")
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             gainNode?.disconnect()
             gainNode = audioContext.createGain()
             gainNode.gain.value = volume
             await audioContext.audioWorklet.addModule("./soundtouch.js")
             sourceNode?.disconnect()
+            effectNode?.disconnect()
             const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
             source.loop = true
-            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift)
+            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
             source.parameters.get("tempo").value = audioRate
             source.parameters.get("rate").value = audioSpeed
             await functions.timeout(100)
-            source.connect(pitchCorrectNode)
-            pitchCorrectNode.connect(gainNode)
+            source.connect(gainNode)
             gainNode.connect(audioContext.destination)
-            source.start()
+            source.start(0, offset)
             setSourceNode(source)
+            setEffectNode(null)
             setStartTime(audioContext.currentTime)
             audioContext.resume()
             setPaused(false)
@@ -286,22 +259,35 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
     }, [audio])
 
     useEffect(() => {
+        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
         if (sourceNode) {
-            if (!lfoMode) sourceNode.parameters.get("pitch").value = functions.semitonesToScale(pitchShift)
+            sourceNode.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
             sourceNode.parameters.get("tempo").value = audioRate
             sourceNode.parameters.get("rate").value = audioSpeed
         }
-        if (pitchCorrectNode) {
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
+        if (effectNode) {
+            effectNode.parameters.get("pitch").value = pitchCorrect
+            effectNode.parameters.get("tempo").value = audioRate
+            effectNode.parameters.get("rate").value = audioSpeed
         }
-    }, [pitchShift, audioRate, audioSpeed, preservesPitch, lfoMode])
+        if (lfoNode) {
+            lfoNode.parameters.get("lfoRate").value = lfoRate
+            lfoNode.port.postMessage({lfoShape})
+        }
+        setDuration(originalDuration / audioSpeed / audioRate)
+    }, [pitchShift, audioRate, audioSpeed, preservesPitch, lfoMode, lfoRate, lfoShape, originalDuration])
 
     useEffect(() => {
         if (updateEffect) {
-            applyPitchShift()
+            if (restartFlag) {
+                applyPitchShift()
+                setRestartFlag(false)
+            } else {
+                applyPitchShift(getCurrentTime())
+            }
             setUpdateEffect(false)
         }
-    }, [sourceNode, pitchShift, audioRate, startTime, elapsedTime, duration, audioReverse, audioSpeed, preservesPitch, updateEffect, lfoMode, lfoRate])
+    }, [sourceNode, effectNode, pitchShift, audioRate, startTime, elapsedTime, duration, audioReverse, audioSpeed, preservesPitch, updateEffect, lfoMode, lfoRate, lfoShape, restartFlag])
 
     useEffect(() => {
         if (gainNode) {
@@ -318,8 +304,9 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
     const reset = () => {
         setPitchShift(0)
         setAudioRate(1)
-        setLFORate(0)
+        setLFORate(1)
         setLFOMode(false)
+        setLFOShape("square")
     }
 
     useEffect(() => {
@@ -331,6 +318,8 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         if (savedPitchShiftLFORate) setLFORate(Number(savedPitchShiftLFORate))
         const savedPitchShiftLFOMode = localStorage.getItem("pitchShiftLFOMode")
         if (savedPitchShiftLFOMode) setLFOMode(savedPitchShiftLFOMode === "true")
+        const savedPitchShiftLFOShape = localStorage.getItem("pitchShiftLFOShape")
+        if (savedPitchShiftLFOShape) setLFOShape(savedPitchShiftLFOShape)
         const savedVolume = localStorage.getItem("volume")
         if (savedVolume) setVolume(Number(savedVolume))
         const savedPreviousVolume = localStorage.getItem("previousVolume")
@@ -338,6 +327,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         const savedPreservesPitch = localStorage.getItem("preservesPitch")
         if (savedPreservesPitch) setPreservesPitch(Number(savedPreservesPitch))
         setTimeout(() => {
+            setRestartFlag(true)
             setUpdateEffect(true)
             setTimeout(() => {
                 setSeekTo(savedTime)
@@ -350,75 +340,67 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         localStorage.setItem("audioRate", String(audioRate))
         localStorage.setItem("pitchShiftLFORate", String(lfoRate))
         localStorage.setItem("pitchShiftLFOMode", String(lfoMode))
+        localStorage.setItem("pitchShiftLFOShape", String(lfoShape))
         localStorage.setItem("volume", String(volume))
         localStorage.setItem("previousVolume", String(volume))
         localStorage.setItem("preservesPitch", String(preservesPitch))
-    }, [volume, previousVolume, preservesPitch, pitchShift, audioRate, lfoRate, lfoMode])
-
-    const renderOriginal = async () => {
-        const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
-        let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-        if (audioReverse) audioBuffer = functions.reverseAudioBuffer(audioBuffer)
-        const offlineContext = new OfflineAudioContext({
-            numberOfChannels: audioBuffer.numberOfChannels, 
-            length: audioBuffer.length / audioSpeed, 
-            sampleRate: audioBuffer.sampleRate
-        })
-        await offlineContext.audioWorklet.addModule("./phase-vocoder.js")
-        const pitchCorrectNode = new AudioWorkletNode(offlineContext, "phase-vocoder-processor") as any
-        const gainNode = offlineContext.createGain()
-        gainNode.gain.value = 1 //volume
-        await offlineContext.audioWorklet.addModule("./soundtouch.js")
-        const sourceNode = createScheduledSoundTouchNode(offlineContext, audioBuffer)
-        sourceNode.loop = true
-        await functions.timeout(100)
-        sourceNode.connect(pitchCorrectNode)
-        pitchCorrectNode.connect(gainNode)
-        gainNode.connect(offlineContext.destination)
-        sourceNode.start()
-        let rendered = null as unknown as AudioBuffer
-        rendered = await offlineContext.startRendering()
-        return rendered
-    }
-
-    const renderEffect = async () => {
-        const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
-        let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-        if (audioReverse) audioBuffer = functions.reverseAudioBuffer(audioBuffer)
-        const offlineContext = new OfflineAudioContext({
-            numberOfChannels: audioBuffer.numberOfChannels, 
-            length: audioBuffer.length / audioSpeed, 
-            sampleRate: audioBuffer.sampleRate
-        })
-        await offlineContext.audioWorklet.addModule("./phase-vocoder.js")
-        const pitchCorrectNode = new AudioWorkletNode(offlineContext, "phase-vocoder-processor") as any
-        pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
-        const gainNode = offlineContext.createGain()
-        gainNode.gain.value = 1 //volume
-        await offlineContext.audioWorklet.addModule("./soundtouch.js")
-        const sourceNode = createScheduledSoundTouchNode(offlineContext, audioBuffer)
-        sourceNode.loop = true
-        sourceNode.parameters.get("pitch").value = functions.semitonesToScale(pitchShift)
-        sourceNode.parameters.get("tempo").value = audioRate
-        sourceNode.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
-        sourceNode.connect(pitchCorrectNode)
-        pitchCorrectNode.connect(gainNode)
-        gainNode.connect(offlineContext.destination)
-        sourceNode.start()
-        let rendered = null as unknown as AudioBuffer
-        rendered = await offlineContext.startRendering()
-        return rendered
-    }
+    }, [volume, previousVolume, preservesPitch, pitchShift, audioRate, lfoRate, lfoMode, lfoShape])
 
     const render = async () => {
+        const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
+        let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+        if (audioReverse) audioBuffer = functions.reverseAudioBuffer(audioBuffer)
+        const offlineContext = new OfflineAudioContext({
+            numberOfChannels: audioBuffer.numberOfChannels, 
+            length: audioBuffer.length / audioSpeed, 
+            sampleRate: audioBuffer.sampleRate
+        })
+        let rendered = null as any
         if (lfoMode) {
-            const original = await renderOriginal()
-            const effect = await renderEffect()
-            return renderLFO(original, effect)
+            const {bpm} = await functions.getBPM(audioBuffer)
+            const gainNode = offlineContext.createGain()
+            gainNode.gain.value = 1
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+            await offlineContext.audioWorklet.addModule("./soundtouch.js")
+            const source = createScheduledSoundTouchNode(offlineContext, audioBuffer)
+            const effect = createScheduledSoundTouchNode(offlineContext, audioBuffer)
+            source.loop = true
+            effect.loop = true
+            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
+            source.parameters.get("tempo").value = audioRate
+            source.parameters.get("rate").value = audioSpeed
+            effect.parameters.get("pitch").value = pitchCorrect
+            effect.parameters.get("tempo").value = audioRate
+            effect.parameters.get("rate").value = audioSpeed
+            await functions.timeout(100)
+            await offlineContext.audioWorklet.addModule("./lfo.js")
+            const lfoNode = new AudioWorkletNode(offlineContext, "lfo-processor", {numberOfInputs: 2, outputChannelCount: [2]}) as any
+            lfoNode.parameters.get("bpm").value = bpm
+            lfoNode.parameters.get("lfoRate").value = lfoRate
+            source.connect(lfoNode, 0, 0)
+            effect.connect(lfoNode, 0, 1)
+            lfoNode.connect(gainNode)
+            gainNode.connect(offlineContext.destination)
+            source.start()
+            effect.start()
+            rendered = await offlineContext.startRendering()
         } else {
-            return renderEffect()
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+            const gainNode = offlineContext.createGain()
+            gainNode.gain.value = volume
+            await offlineContext.audioWorklet.addModule("./soundtouch.js")
+            const source = createScheduledSoundTouchNode(offlineContext, audioBuffer)
+            source.loop = true
+            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
+            source.parameters.get("tempo").value = audioRate
+            source.parameters.get("rate").value = audioSpeed
+            await functions.timeout(100)
+            source.connect(gainNode)
+            gainNode.connect(offlineContext.destination)
+            source.start()
+            rendered = await offlineContext.startRendering()
         }
+        return rendered
     }
 
     const mp3 = async () => {
@@ -498,7 +480,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             setSecondsProgress(seekTo)
             setSeekTo(null)
         }
-    }, [seekTo, audioReverse, pitchShift, audioRate, audioSpeed, reverseActive, elapsedTime, startTime, duration, lfoMode])
+    }, [seekTo, audioReverse, pitchShift, audioRate, audioSpeed, preservesPitch, reverseActive, elapsedTime, startTime, duration, lfoMode])
 
     const updatePlay = async (alwaysPlay?: boolean) => {
         if (paused || alwaysPlay) {
@@ -514,38 +496,68 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         if (!sourceNode) return
         sourceNode.stop()
         sourceNode.disconnect()
+        effectNode?.stop()
+        effectNode?.disconnect()
+        setSourceNode(null)
         let audioBuffer = sourceNode.audioBuffer
+        let effectBuffer = effectNode?.audioBuffer
         if (audioReverse && !reverseActive) {
             audioBuffer = functions.reverseAudioBuffer(audioBuffer)
+            if (effectBuffer) effectBuffer = functions.reverseAudioBuffer(effectBuffer)
             setReverseActive(true)
         } else if (!audioReverse && reverseActive) {
             audioBuffer = functions.reverseAudioBuffer(audioBuffer)
+            if (effectBuffer) effectBuffer = functions.reverseAudioBuffer(effectBuffer)
             setReverseActive(false)
         }
-        const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
-        if (!lfoMode) source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift)
-        source.parameters.get("tempo").value = audioRate
-        source.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
-        source.loop = true
-        source.connect(pitchCorrectNode)
-        source.start(0, offset)
-        setSourceNode(source)
+        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+        if (lfoMode) {
+            const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
+            const effect = createScheduledSoundTouchNode(audioContext, audioBuffer)
+            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
+            source.parameters.get("tempo").value = audioRate
+            source.parameters.get("rate").value = audioSpeed
+            effect.parameters.get("pitch").value = pitchCorrect
+            effect.parameters.get("tempo").value = audioRate
+            effect.parameters.get("rate").value = audioSpeed
+            await functions.timeout(100)
+            source.loop = true
+            effect.loop = true
+            source.connect(lfoNode, 0, 0)
+            effect.connect(lfoNode, 0, 1)
+            source.start(0, offset)
+            effect.start(0, offset)
+            setSourceNode(source)
+            setEffectNode(effect)
+        } else {
+            const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
+            source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
+            source.parameters.get("tempo").value = audioRate
+            source.parameters.get("rate").value = audioSpeed
+            await functions.timeout(100)
+            source.loop = true
+            source.connect(gainNode)
+            source.start(0, offset)
+            setSourceNode(source)
+            setEffectNode(null)
+        }
         setStartTime(audioContext.currentTime)
         setElapsedTime(offset)
         audioContext.resume()
     }
 
     const stop = () => {
-        if (!sourceNode) return
         sourceNode?.stop()
         sourceNode?.disconnect()
+        effectNode?.stop()
+        effectNode?.disconnect()
         audioContext.suspend()
         setStartTime(audioContext.currentTime)
         setElapsedTime(0)
         setProgress(0)
         setSecondsProgress(0)
-        //setSourceNode(null)
+        setSourceNode(null)
+        setEffectNode(null)
     }
 
     const updateMute = () => {
@@ -604,7 +616,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
     const updateSpeed = (speed: number) => {
         setAudioSpeed(speed)
         let secondsProgress = audioReverse ? (duration / 100) * (100 - progress) : (duration / 100) * progress
-        setDuration(originalDuration / speed)
+        setDuration(originalDuration / speed / audioRate)
         //setSeekTo(secondsProgress / speed)
     }
 
@@ -657,12 +669,13 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
     }, [coverImg])
 
     const getLFORate = () => {
-        if (lfoRate === 5) return "2/1"
-        if (lfoRate === 4) return "1/1"
-        if (lfoRate === 3) return "1/2"
-        if (lfoRate === 2) return "1/4"
-        if (lfoRate === 1) return "1/8"
-        if (lfoRate === 0) return "1/16"
+        if (lfoRate === 5) return "1/1"
+        if (lfoRate === 4) return "1/2"
+        if (lfoRate === 3) return "1/4"
+        if (lfoRate === 2) return "1/8"
+        if (lfoRate === 1) return "1/16"
+        if (lfoRate === 0) return "1/32"
+        return "1/16"
     }
 
     const updateLFOMode = () => {
@@ -734,10 +747,17 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
                 <div className="bitcrush-row">
                     <span className="bitcrush-text-mini" style={{width: "auto", fontSize: "17px"}}>LFO?</span>
                     <img className="bitcrush-checkbox" src={lfoMode ? checkboxChecked : checkbox} onClick={() => updateLFOMode()} style={{marginLeft: "5px"}}/>
+                    <span className="bitcrush-text-mini" style={{width: "92px", fontSize: "17px", marginLeft: "20px"}}>LFO Shape:</span>
+                    <DropdownButton title={functions.toProperCase(lfoShape)} drop="down">
+                        <Dropdown.Item active={lfoShape === "square"} onClick={() => setLFOShape("square")}>Square</Dropdown.Item>
+                        <Dropdown.Item active={lfoShape === "sine"} onClick={() => setLFOShape("sine")}>Sine</Dropdown.Item>
+                        <Dropdown.Item active={lfoShape === "triangle"} onClick={() => setLFOShape("triangle")}>Triangle</Dropdown.Item>
+                        <Dropdown.Item active={lfoShape === "sawtooth"} onClick={() => setLFOShape("sawtooth")}>Sawtooth</Dropdown.Item>
+                    </DropdownButton>
                 </div>
                 <div className="bitcrush-row">
                     <span className="bitcrush-text">LFO Rate: </span>
-                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setLFORate(value)} min={0} max={5} step={1} value={lfoRate} onAfterChange={() => lfoMode ? setUpdateEffect(true) : null}/>
+                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setLFORate(value)} min={0} max={5} step={1} value={lfoRate}/>
                     <span className="bitcrush-text-mini">{getLFORate()}</span>
                 </div>
                 <div className="bitcrush-row">

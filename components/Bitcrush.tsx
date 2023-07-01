@@ -5,7 +5,7 @@ import path from "path"
 import {SiteHueContext, SiteSaturationContext, SiteLightnessContext, AttackModeContext, AudioContext, 
 AudioNameContext, AudioSpeedContext, AudioReverseContext, SourceNodeContext, SecondsProgressContext, ProgressContext, VolumeContext,
 PreviousVolumeContext, PreservesPitchContext, StartTimeContext, ElapsedTimeContext, ReverseActiveContext, DurationContext, PauseContext,
-SeekToContext, UpdateEffectContext, SavedTimeContext, OriginalDurationContext, patterns} from "../renderer"
+SeekToContext, UpdateEffectContext, SavedTimeContext, EffectNodeContext, OriginalDurationContext, patterns} from "../renderer"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import audioReverseIcon from "../assets/icons/audio-reverse.png"
@@ -27,9 +27,9 @@ import xIcon from "../assets/icons/x.png"
 import checkboxChecked from "../assets/icons/checkbox-checked.png"
 import checkbox from "../assets/icons/checkbox.png"
 import audioPlaceholder from "../assets/images/audio-placeholder.png"
+import "./styles/bitcrush.less"
 // @ts-ignore
 import {createScheduledSoundTouchNode} from "@dancecuts/soundtouchjs-scheduled-audio-worklet"
-import "./styles/bitcrush.less"
 
 interface Props {
     audioContext: AudioContext
@@ -38,7 +38,6 @@ interface Props {
 let bitcrusherNode = null as any
 let lowpassFilterNode = null as any
 let gainNode = null as any
-let pitchCorrectNode = null as any
 
 const Bitcrush: React.FunctionComponent<Props> = (props) => {
     const {audio, setAudio} = useContext(AudioContext)
@@ -52,6 +51,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
     const [lowpassCutoff, setLowpassCutoff] = useState(44100)
     const [downsample, setDownsample] = useState(false)
     const {sourceNode, setSourceNode} = useContext(SourceNodeContext)
+    const {effectNode, setEffectNode} = useContext(EffectNodeContext)
     const [showSpeedDropdown, setShowSpeedDropdown] = useState(false)
     const [showVolumeSlider, setShowVolumeSlider] = useState(false)
     const [showSpeedSlider, setShowSpeedSlider] = useState(false)
@@ -65,6 +65,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
     const {secondsProgress, setSecondsProgress} = useContext(SecondsProgressContext)
     const {progress, setProgress} = useContext(ProgressContext)
     const [dragProgress, setDragProgress] = useState(0) as any
+    const [restartFlag, setRestartFlag] = useState(false)
     const {audioReverse, setAudioReverse} = useContext(AudioReverseContext)
     const {audioSpeed, setAudioSpeed} = useContext(AudioSpeedContext)
     const {volume, setVolume} = useContext(VolumeContext)
@@ -203,41 +204,39 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
         return newBuffer
     }
 
-    const applyBitcrush = async () => {
+    const applyBitcrush = async (offset: number = 0) => {
         if (!audio) return
-        stop()
+        if (!offset) stop()
         const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
         let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
         if (audioReverse) functions.reverseAudioBuffer(audioBuffer)
         setDuration(audioBuffer.duration / audioSpeed)
         setOriginalDuration(audioBuffer.duration)
         if (downsample) {
-            const downsampled = reduceSampleRate(audioBuffer, sampleRate)
-            const bitcrushed = reduceBitDepth(downsampled, bitDepth)
-            await audioContext.audioWorklet.addModule("./phase-vocoder.js")
-            pitchCorrectNode?.disconnect()
-            pitchCorrectNode = new AudioWorkletNode(audioContext, "phase-vocoder-processor")
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
+            const bitcrushed = await renderCrushed()
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             lowpassFilterNode?.disconnect()
             lowpassFilterNode = audioContext.createBiquadFilter()
             lowpassFilterNode.type = "lowpass"
             lowpassFilterNode.frequency.value = lowpassCutoff
+            lowpassFilterNode.Q.value = 5
             gainNode?.disconnect()
             gainNode = audioContext.createGain()
             gainNode.gain.value = volume
             await audioContext.audioWorklet.addModule("./soundtouch.js")
             sourceNode?.disconnect()
+            effectNode?.disconnect()
             const source = createScheduledSoundTouchNode(audioContext, bitcrushed)
+            source.parameters.get("pitch").value = pitchCorrect
+            source.parameters.get("rate").value = audioSpeed
             source.loop = true
             await functions.timeout(100)
-            source.connect(pitchCorrectNode)
-            await functions.timeout(100)
-            source.connect(pitchCorrectNode)
-            pitchCorrectNode.connect(lowpassFilterNode)
+            source.connect(lowpassFilterNode)
             lowpassFilterNode.connect(gainNode)
             gainNode.connect(audioContext.destination)
-            source.start()
+            source.start(0, offset)
             setSourceNode(source)
+            setEffectNode(null)
             setStartTime(audioContext.currentTime)
             audioContext.resume()
             setPaused(false)
@@ -247,29 +246,30 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             bitcrusherNode = new AudioWorkletNode(audioContext, "bitcrush-processor")
             bitcrusherNode.parameters.get("bitDepth").value = bitDepth
             bitcrusherNode.parameters.get("sampleRate").value = sampleRate
-            await audioContext.audioWorklet.addModule("./phase-vocoder.js")
-            pitchCorrectNode?.disconnect()
-            pitchCorrectNode = new AudioWorkletNode(audioContext, "phase-vocoder-processor")
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             lowpassFilterNode?.disconnect()
             lowpassFilterNode = audioContext.createBiquadFilter()
             lowpassFilterNode.type = "lowpass"
             lowpassFilterNode.frequency.value = lowpassCutoff
+            lowpassFilterNode.Q.value = 5
             gainNode?.disconnect()
             gainNode = audioContext.createGain()
             gainNode.gain.value = volume
             await audioContext.audioWorklet.addModule("./soundtouch.js")
             sourceNode?.disconnect()
+            effectNode?.disconnect()
             const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
+            source.parameters.get("rate").value = audioSpeed
+            source.parameters.get("pitch").value = pitchCorrect
             source.loop = true
             await functions.timeout(100)
-            source.connect(pitchCorrectNode)
-            pitchCorrectNode.connect(bitcrusherNode)
+            source.connect(bitcrusherNode)
             bitcrusherNode.connect(lowpassFilterNode)
             lowpassFilterNode.connect(gainNode)
             gainNode.connect(audioContext.destination)
-            source.start()
+            source.start(0, offset)
             setSourceNode(source)
+            setEffectNode(null)
             setStartTime(audioContext.currentTime)
             audioContext.resume()
             setPaused(false)
@@ -299,19 +299,23 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             lowpassFilterNode.frequency.value = lowpassCutoff
         }
         if (sourceNode) {
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+            sourceNode.parameters.get("pitch").value = pitchCorrect
             sourceNode.parameters.get("rate").value = audioSpeed
-        }
-        if (pitchCorrectNode) {
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
         }
     }, [sampleRate, bitDepth, lowpassCutoff, audioSpeed, preservesPitch])
 
     useEffect(() => {
         if (updateEffect) {
-            applyBitcrush()
+            if (restartFlag) {
+                applyBitcrush()
+                setRestartFlag(false)
+            } else {
+                applyBitcrush(getCurrentTime())
+            }
             setUpdateEffect(false)
         }
-    }, [sourceNode, startTime, elapsedTime, duration, downsample, audioReverse, audioSpeed, preservesPitch, updateEffect])
+    }, [sourceNode, startTime, elapsedTime, duration, downsample, audioReverse, audioSpeed, preservesPitch, updateEffect, restartFlag])
 
     useEffect(() => {
         if (gainNode) {
@@ -365,6 +369,24 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
         localStorage.setItem("preservesPitch", String(preservesPitch))
     }, [bitDepth, sampleRate, lowpassCutoff, downsample, volume, previousVolume, preservesPitch])
 
+    const renderCrushed = async () => {
+        const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
+        let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+        if (audioReverse) audioBuffer = functions.reverseAudioBuffer(audioBuffer)
+        const offlineContext = new OfflineAudioContext({
+            numberOfChannels: audioBuffer.numberOfChannels, 
+            length: audioBuffer.length / audioSpeed, 
+            sampleRate: audioBuffer.sampleRate
+        })
+        const downsampled = reduceSampleRate(audioBuffer, sampleRate)
+        const bitcrushed = reduceBitDepth(downsampled, bitDepth)
+        const source = offlineContext.createBufferSource()
+        source.buffer = bitcrushed
+        source.connect(offlineContext.destination)
+        source.start()
+        return offlineContext.startRendering()
+    }
+
     const render = async () => {
         const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
         let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
@@ -376,21 +398,19 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
         })
         let rendered = null as unknown as AudioBuffer
         if (downsample) {
-            const downsampled = reduceSampleRate(audioBuffer, sampleRate)
-            const bitcrushed = reduceBitDepth(downsampled, bitDepth)
-            await offlineContext.audioWorklet.addModule("./phase-vocoder.js")
-            const pitchCorrectNode = new AudioWorkletNode(offlineContext, "phase-vocoder-processor") as any
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
+            const bitcrushed = await renderCrushed()
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             const lowpassFilterNode = offlineContext.createBiquadFilter()
             lowpassFilterNode.type = "lowpass"
             lowpassFilterNode.frequency.value = lowpassCutoff
+            lowpassFilterNode.Q.value = 5
             await offlineContext.audioWorklet.addModule("./soundtouch.js")
-            const sourceNode = createScheduledSoundTouchNode(offlineContext,bitcrushed)
+            const sourceNode = createScheduledSoundTouchNode(offlineContext, bitcrushed)
+            sourceNode.parameters.get("pitch").value = pitchCorrect
             sourceNode.loop = true
             sourceNode.parameters.get("rate").value = audioSpeed
             await functions.timeout(100)
-            sourceNode.connect(pitchCorrectNode)
-            pitchCorrectNode.connect(lowpassFilterNode)
+            sourceNode.connect(lowpassFilterNode)
             lowpassFilterNode.connect(offlineContext.destination)
             sourceNode.start()
             rendered = await offlineContext.startRendering()
@@ -399,19 +419,18 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             const bitcrusherNode = new AudioWorkletNode(offlineContext, "bitcrush-processor") as any
             bitcrusherNode.parameters.get("bitDepth").value = bitDepth
             bitcrusherNode.parameters.get("sampleRate").value = sampleRate
-            await offlineContext.audioWorklet.addModule("./phase-vocoder.js")
-            const pitchCorrectNode = new AudioWorkletNode(offlineContext, "phase-vocoder-processor") as any
-            pitchCorrectNode.parameters.get("pitchFactor").value = preservesPitch ? 1 / audioSpeed : 1
+            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             const lowpassFilterNode = offlineContext.createBiquadFilter()
             lowpassFilterNode.type = "lowpass"
             lowpassFilterNode.frequency.value = lowpassCutoff
+            lowpassFilterNode.Q.value = 5
             await offlineContext.audioWorklet.addModule("./soundtouch.js")
             const sourceNode = createScheduledSoundTouchNode(offlineContext, audioBuffer)
+            sourceNode.parameters.get("pitch").value = pitchCorrect
             sourceNode.loop = true
             sourceNode.parameters.get("rate").value = audioSpeed
             await functions.timeout(100)
-            sourceNode.connect(pitchCorrectNode)
-            pitchCorrectNode.connect(bitcrusherNode)
+            sourceNode.connect(bitcrusherNode)
             bitcrusherNode.connect(lowpassFilterNode)
             lowpassFilterNode.connect(offlineContext.destination)
             sourceNode.start()
@@ -497,7 +516,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             setSecondsProgress(seekTo)
             setSeekTo(null)
         }
-    }, [seekTo, audioReverse, audioSpeed, reverseActive, elapsedTime, startTime, duration])
+    }, [seekTo, audioReverse, audioSpeed, reverseActive, elapsedTime, startTime, duration, preservesPitch, downsample])
 
     const updatePlay = async (alwaysPlay?: boolean) => {
         if (paused || alwaysPlay) {
@@ -511,8 +530,11 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
 
     const start = async (offset: number) => {
         if (!sourceNode) return
-        sourceNode.stop()
-        sourceNode.disconnect()
+        sourceNode?.stop()
+        sourceNode?.disconnect()
+        effectNode?.stop()
+        effectNode?.disconnect()
+        setSourceNode(null)
         let audioBuffer = sourceNode.audioBuffer
         if (audioReverse && !reverseActive) {
             audioBuffer = functions.reverseAudioBuffer(audioBuffer)
@@ -521,28 +543,37 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             audioBuffer = functions.reverseAudioBuffer(audioBuffer)
             setReverseActive(false)
         }
+        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
         const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
-        source.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
         source.loop = true
-        source.connect(pitchCorrectNode)
+        source.parameters.get("rate").value = audioSpeed
+        source.parameters.get("pitch").value = pitchCorrect
+        await functions.timeout(100)
+        if (downsample) {
+            source.connect(lowpassFilterNode)
+        } else {
+            source.connect(bitcrusherNode)
+        }
         source.start(0, offset)
         setSourceNode(source)
+        setEffectNode(null)
         setStartTime(audioContext.currentTime)
         setElapsedTime(offset)
         audioContext.resume()
     }
 
     const stop = () => {
-        if (!sourceNode) return
         sourceNode?.stop()
         sourceNode?.disconnect()
+        effectNode?.stop()
+        effectNode?.disconnect()
         audioContext.suspend()
         setStartTime(audioContext.currentTime)
         setElapsedTime(0)
         setProgress(0)
         setSecondsProgress(0)
         setSourceNode(null)
+        setEffectNode(null)
     }
 
     const updateMute = () => {
@@ -686,7 +717,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             <div className="relative-ref">
                 <canvas className="bitcrush-cover" ref={coverRef}></canvas>
                 <div className="audio-controls" ref={audioControls} onMouseUp={() => setDragging(false)}>
-                    <div className="audio-control-row" style={{filter: getFilter2()}}>
+                    <div className="audio-control-row"style={{filter: getFilter2()}}>
                         <p className="audio-control-text">{dragging ? functions.formatSeconds(dragProgress) : functions.formatSeconds(secondsProgress)}</p>
                         <Slider ref={audioSliderRef} className="audio-slider" trackClassName="audio-slider-track" thumbClassName="audio-slider-thumb" min={0} max={100} value={progress} onBeforeChange={() => setDragging(true)} onChange={(value) => updateProgressText(value)} onAfterChange={(value) => seek(value)}/>
                         <p className="audio-control-text">{functions.formatSeconds(duration)}</p>

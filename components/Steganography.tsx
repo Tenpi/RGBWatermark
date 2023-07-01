@@ -329,7 +329,7 @@ const Steganography: React.FunctionComponent = (props) => {
                     <div className="steg-row">
                         <label htmlFor="embedFile" className="steg-image-button" style={{backgroundColor: "#dd34a5", marginTop: "0px", marginBottom: "0px", marginLeft: "0px", marginRight: "0px"}}>
                             <span className="button-hover">
-                                <span className="button-text" style={{fontSize: "17px"}}>File</span>
+                                <span className="button-text" style={{fontSize: "17px"}}>Hidden File</span>
                             </span>
                         </label>
                         <input id="embedFile" type="file" onChange={(event) => loadFile(event)}/>

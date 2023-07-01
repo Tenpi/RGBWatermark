@@ -47,6 +47,69 @@ export default class Functions {
         return path.extname(file) === ".webp"
     }
 
+    public static isGLTF = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".glb" || ext === ".gltf"
+        }
+        return path.extname(file) === ".glb" || path.extname(file) === ".gltf"
+    }
+
+    public static isOBJ = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".obj"
+        }
+        return path.extname(file) === ".obj"
+    }
+
+    public static isFBX = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".fbx"
+        }
+        return path.extname(file) === ".fbx"
+    }
+
+    public static isSTL = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".stl"
+        }
+        return path.extname(file) === ".stl"
+    }
+
+    public static isDAE = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".dae"
+        }
+        return path.extname(file) === ".dae"
+    }
+
+    public static isMTL = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".mtl"
+        }
+        return path.extname(file) === ".mtl"
+    }
+
+    public static isMMD = (file?: string) => {
+        if (!file) return false
+        if (file?.startsWith("blob:")) {
+            const ext = file.split("#")?.[1] || ""
+            return ext === ".mmd"
+        }
+        return path.extname(file) === ".mmd"
+    }
+
     public static isAnimatedWebp = async (buffer: ArrayBuffer) => {
         let str: any
         if (typeof window === "undefined") {
@@ -820,5 +883,26 @@ export default class Functions {
         writeString(39, 'a')
         view.setUint32(40, dataSize, true)
         return new Uint8Array(buffer)
+    }
+
+    public static createAudioBuffer = (left: Float32Array, right: Float32Array, sampleRate: number) => {
+        const audioContext = new AudioContext()
+        const audioBuffer = audioContext.createBuffer(2, left.length, sampleRate)
+        const channelDataL = audioBuffer.getChannelData(0)
+        const channelDataR = audioBuffer.getChannelData(1)
+        for (let i = 0; i < left.length; i++) {
+          channelDataL[i] = left[i]
+          channelDataR[i] = right[i]
+        }
+        return audioBuffer
+    }
+
+    public static jsonToArray = (json: any) => {
+        let str = JSON.stringify(json, null, 0)
+        let ret = new Uint8Array(str.length)
+        for (let i = 0; i < str.length; i++) {
+            ret[i] = str.charCodeAt(i)
+        }
+        return ret
     }
 }

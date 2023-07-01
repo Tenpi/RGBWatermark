@@ -2,10 +2,11 @@ import React, {useContext, useEffect, useState, useRef} from "react"
 import {useHistory} from "react-router-dom"
 import {HashLink as Link} from "react-router-hash-link"
 import path from "path"
+import {Dropdown, DropdownButton} from "react-bootstrap"
 import {SiteHueContext, SiteSaturationContext, SiteLightnessContext, AttackModeContext, AudioContext, 
 AudioNameContext, AudioSpeedContext, AudioReverseContext, SourceNodeContext, SecondsProgressContext, ProgressContext, VolumeContext,
 PreviousVolumeContext, PreservesPitchContext, StartTimeContext, ElapsedTimeContext, ReverseActiveContext, DurationContext, PauseContext,
-SeekToContext, UpdateEffectContext, SavedTimeContext, EffectNodeContext, OriginalDurationContext, patterns} from "../renderer"
+SeekToContext, UpdateEffectContext, SavedTimeContext, OriginalDurationContext, EffectNodeContext, patterns} from "../renderer"
 import functions from "../structures/Functions"
 import Slider from "react-slider"
 import audioReverseIcon from "../assets/icons/audio-reverse.png"
@@ -36,19 +37,21 @@ interface Props {
 }
 
 let gainNode = null as any
-let lfoNode = null as any
+let intervalNode = null as any
 
-const BlockReverse: React.FunctionComponent<Props> = (props) => {
+const PinkNoise: React.FunctionComponent<Props> = (props) => {
     const {audio, setAudio} = useContext(AudioContext)
     const {audioName, setAudioName} = useContext(AudioNameContext)
     const {siteHue, setSiteHue} = useContext(SiteHueContext)
     const {siteSaturation, setSiteSaturation} = useContext(SiteSaturationContext)
     const {siteLightness, setSiteLightness} = useContext(SiteLightnessContext)
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
-    const [lfoRate, setLFORate] = useState(2)
+    const [noiseInterval, setNoiseInterval] = useState(30000)
+    const [noiseDuration, setNoiseDuration] = useState(1000)
+    const [noiseVolume, setNoiseVolume] = useState(1)
+    const [restartFlag, setRestartFlag] = useState(false)
     const {sourceNode, setSourceNode} = useContext(SourceNodeContext)
     const {effectNode, setEffectNode} = useContext(EffectNodeContext)
-    const [restartFlag, setRestartFlag] = useState(false)
     const [showSpeedDropdown, setShowSpeedDropdown] = useState(false)
     const [showVolumeSlider, setShowVolumeSlider] = useState(false)
     const [showSpeedSlider, setShowSpeedSlider] = useState(false)
@@ -169,87 +172,69 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         if (event.target) event.target.value = ""
     }
 
-    const forwardReverseBuffer = (audioBuffer: AudioBuffer, bpm: number) => {
-        const reverseBuffer = functions.reverseAudioBuffer(audioBuffer)
-        const blockSize = Math.round(Math.ceil(60/bpm * audioBuffer.sampleRate) * ((2**lfoRate)/8))
-        let blocksL = [] as any
-        let blocksR = [] as any
-        const samplesL = audioBuffer.getChannelData(0)
-        const samplesR = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : audioBuffer.getChannelData(0)
-        for (let i = 0; i < samplesL.length; i+=blockSize) {
-            let blockL = [] as any
-            let blockR = [] as any
-            for (let j = i; j < Math.min(i + blockSize, samplesL.length); j++) {
-                blockL.push(samplesL[j])
-                blockR.push(samplesR[j])
-            }
-            blocksL.push(blockL)
-            blocksR.push(blockR)
+    const generatePinkNoise = (length: number) => {
+        const noise = new Float32Array(length)
+        let b0, b1, b2, b3, b4, b5, b6
+        b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0
+        for (let i = 0; i < length; i++) {
+          const white = Math.random() * 2 - 1
+          b0 = 0.99886 * b0 + white * 0.0555179
+          b1 = 0.99332 * b1 + white * 0.0750759
+          b2 = 0.96900 * b2 + white * 0.1538520
+          b3 = 0.86650 * b3 + white * 0.3104856
+          b4 = 0.55000 * b4 + white * 0.5329522
+          b5 = -0.7616 * b5 - white * 0.0168980
+          noise[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.08 + 0.5
+          b6 = white * 0.115926
         }
-        let reverseBlocksL = [] as any
-        let reverseBlocksR = [] as any
-        const reverseSamplesL = reverseBuffer.getChannelData(0)
-        const reverseSamplesR = reverseBuffer.numberOfChannels > 1 ? reverseBuffer.getChannelData(1) : reverseBuffer.getChannelData(0)
-        for (let i = 0; i < reverseSamplesL.length; i+=blockSize) {
-            let reverseBlockL = [] as any
-            let reverseBlockR = [] as any
-            for (let j = i; j < Math.min(i + blockSize, reverseSamplesL.length); j++) {
-                reverseBlockL.push(reverseSamplesL[j])
-                reverseBlockR.push(reverseSamplesR[j])
-            }
-            reverseBlocksL.push(reverseBlockL)
-            reverseBlocksR.push(reverseBlockR)
-        }
-        reverseBlocksL = reverseBlocksL.reverse()
-        reverseBlocksR = reverseBlocksR.reverse()
-        let mergedBlocksL = [] as any
-        let mergedBlocksR = [] as any
-        for (let i = 0; i < blocksL.length + reverseBlocksL.length; i+=2) {
-            mergedBlocksL.push(blocksL[i])
-            mergedBlocksL.push(reverseBlocksL[i+1])
-            mergedBlocksR.push(blocksR[i])
-            mergedBlocksR.push(reverseBlocksR[i+1])
-        }
-        const newSamplesL = mergedBlocksL.flat()
-        const newSamplesR = mergedBlocksR.flat()
-        const newBuffer = new AudioBuffer({
-            numberOfChannels: audioBuffer.numberOfChannels,
-            length: audioBuffer.length,
-            sampleRate: audioBuffer.sampleRate,
-        })
-        newBuffer.copyToChannel(new Float32Array(newSamplesL), 0)
-        if (newBuffer.numberOfChannels > 1) {
-            newBuffer.copyToChannel(new Float32Array(newSamplesR), 1)
-        }
-        return newBuffer
+        return noise
     }
 
-    const applyBlockReverse = async (offset: number = 0) => {
+    const pinkNoiseBuffer = (audioBuffer: AudioBuffer) => {
+        const noise1 = generatePinkNoise(audioBuffer.length)
+        const noise2 = generatePinkNoise(audioBuffer.length)
+        return functions.createAudioBuffer(noise1, noise2, audioBuffer.sampleRate)
+    }
+
+    const applyPinkNoise = async (offset: number = 0) => {
         if (!audio) return
         if (!offset) stop()
         const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
         let audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-        if (audioReverse) audioBuffer = functions.reverseAudioBuffer(audioBuffer)
-        const {bpm} = await functions.getBPM(audioBuffer)
-        const effectBuffer = forwardReverseBuffer(audioBuffer, bpm)
         setDuration(audioBuffer.duration / audioSpeed)
         setOriginalDuration(audioBuffer.duration)
+        const {bpm} = await functions.getBPM(audioBuffer)
         gainNode?.disconnect()
         gainNode = audioContext.createGain()
         gainNode.gain.value = volume 
         await audioContext.audioWorklet.addModule("./soundtouch.js")
-        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
         sourceNode?.disconnect()
         effectNode?.disconnect()
-        const source = createScheduledSoundTouchNode(audioContext, effectBuffer)
-        source.parameters.get("pitch").value = pitchCorrect
+        const pinkNoise = pinkNoiseBuffer(audioBuffer)
+        const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
+        const effect = createScheduledSoundTouchNode(audioContext, pinkNoise)
         source.loop = true
+        effect.loop = true
+        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+        source.parameters.get("pitch").value = pitchCorrect
+        source.parameters.get("rate").value = audioSpeed
+        effect.parameters.get("pitch").value = pitchCorrect
+        effect.parameters.get("rate").value = audioSpeed
         await functions.timeout(100)
-        source.connect(gainNode)
+        await audioContext.audioWorklet.addModule("./interval.js")
+        intervalNode?.disconnect()
+        intervalNode = new AudioWorkletNode(audioContext, "interval-processor", {numberOfInputs: 2, outputChannelCount: [2]})
+        intervalNode.parameters.get("interval").value = noiseInterval
+        intervalNode.parameters.get("duration").value = noiseDuration
+        intervalNode.parameters.get("volume").value = noiseVolume
+        source.connect(intervalNode, 0, 0)
+        effect.connect(intervalNode, 0, 1)
+        intervalNode.connect(gainNode)
         gainNode.connect(audioContext.destination)
-        source.start()
+        source.start(0, offset)
+        effect.start(0, offset)
         setSourceNode(source)
-        setEffectNode(null)
+        setEffectNode(effect)
         setStartTime(audioContext.currentTime)
         audioContext.resume()
         setPaused(false)
@@ -265,32 +250,39 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
     }
 
     useEffect(() => {
-        applyBlockReverse()
+        applyPinkNoise()
         updateSongCover()
     }, [audio])
 
     useEffect(() => {
+        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
         if (sourceNode) {
-            const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             sourceNode.parameters.get("pitch").value = pitchCorrect
             sourceNode.parameters.get("rate").value = audioSpeed
         }
-        if (lfoNode) {
-            lfoNode.parameters.get("lfoRate").value = lfoRate
+        if (effectNode) {
+            effectNode.parameters.get("pitch").value = pitchCorrect
+            effectNode.parameters.get("rate").value = audioSpeed
         }
-    }, [audioSpeed, preservesPitch, lfoRate])
+        if (intervalNode) {
+            intervalNode.parameters.get("interval").value = noiseInterval
+            intervalNode.parameters.get("duration").value = noiseDuration
+            intervalNode.parameters.get("volume").value = noiseVolume
+        }
+        setDuration(originalDuration / audioSpeed)
+    }, [audioSpeed, preservesPitch, noiseInterval, noiseDuration, noiseVolume, originalDuration])
 
     useEffect(() => {
         if (updateEffect) {
             if (restartFlag) {
-                applyBlockReverse()
+                applyPinkNoise()
                 setRestartFlag(false)
             } else {
-                applyBlockReverse(getCurrentTime())
+                applyPinkNoise(getCurrentTime())
             }
             setUpdateEffect(false)
         }
-    }, [sourceNode, startTime, elapsedTime, duration, audioReverse, audioSpeed, preservesPitch, updateEffect, lfoRate, restartFlag])
+    }, [sourceNode, effectNode, startTime, elapsedTime, duration, audioReverse, audioSpeed, preservesPitch, updateEffect, noiseInterval, noiseDuration, noiseVolume, restartFlag])
 
     useEffect(() => {
         if (gainNode) {
@@ -305,12 +297,18 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
     }
 
     const reset = () => {
-        setLFORate(0)
+        setNoiseInterval(30000)
+        setNoiseDuration(1000)
+        setNoiseVolume(0.5)
     }
 
     useEffect(() => {
-        const savedBlockReverseLFORate = localStorage.getItem("blockReverseLFORate")
-        if (savedBlockReverseLFORate) setLFORate(Number(savedBlockReverseLFORate))
+        const savedPinkNoiseInterval = localStorage.getItem("pinkNoiseInterval")
+        if (savedPinkNoiseInterval) setNoiseInterval(Number(savedPinkNoiseInterval))
+        const savedPinkNoiseDuration = localStorage.getItem("pinkNoiseDuration")
+        if (savedPinkNoiseDuration) setNoiseDuration(Number(savedPinkNoiseDuration))
+        const savedPinkNoiseVolume = localStorage.getItem("pinkNoiseVolume")
+        if (savedPinkNoiseVolume) setNoiseVolume(Number(savedPinkNoiseVolume))
         const savedVolume = localStorage.getItem("volume")
         if (savedVolume) setVolume(Number(savedVolume))
         const savedPreviousVolume = localStorage.getItem("previousVolume")
@@ -327,11 +325,13 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
     }, [])
 
     useEffect(() => {
-        localStorage.setItem("blockReverseLFORate", String(lfoRate))
+        localStorage.setItem("pinkNoiseInterval", String(noiseInterval))
+        localStorage.setItem("pinkNoiseDuration", String(noiseDuration))
+        localStorage.setItem("pinkNoiseVolume", String(noiseVolume))
         localStorage.setItem("volume", String(volume))
         localStorage.setItem("previousVolume", String(volume))
         localStorage.setItem("preservesPitch", String(preservesPitch))
-    }, [volume, previousVolume, preservesPitch, lfoRate])
+    }, [volume, previousVolume, preservesPitch, noiseInterval, noiseDuration, noiseVolume])
 
     const render = async () => {
         const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
@@ -342,19 +342,31 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
             length: audioBuffer.length / audioSpeed, 
             sampleRate: audioBuffer.sampleRate
         })
-        const {bpm} = await functions.getBPM(audioBuffer)
-        const effectBuffer = forwardReverseBuffer(audioBuffer, bpm)
         const gainNode = offlineContext.createGain()
         gainNode.gain.value = 1
         await offlineContext.audioWorklet.addModule("./soundtouch.js")
-        const pitchCorrect = preservesPitch? 1 / audioSpeed : 1
-        const source = createScheduledSoundTouchNode(offlineContext, effectBuffer)
-        source.parameters.get("pitch").value = pitchCorrect
+        const pinkNoise = pinkNoiseBuffer(audioBuffer)
+        const source = createScheduledSoundTouchNode(offlineContext, audioBuffer)
+        const effect = createScheduledSoundTouchNode(offlineContext, pinkNoise)
         source.loop = true
+        effect.loop = true
+        const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
+        source.parameters.get("pitch").value = pitchCorrect
+        source.parameters.get("rate").value = audioSpeed
+        effect.parameters.get("pitch").value = pitchCorrect
+        effect.parameters.get("rate").value = audioSpeed
         await functions.timeout(100)
-        source.connect(gainNode)
+        await offlineContext.audioWorklet.addModule("./interval.js")
+        const intervalNode = new AudioWorkletNode(offlineContext, "interval-processor", {numberOfInputs: 2, outputChannelCount: [2]}) as any
+        intervalNode.parameters.get("interval").value = noiseInterval
+        intervalNode.parameters.get("duration").value = noiseDuration
+        intervalNode.parameters.get("volume").value = noiseVolume
+        source.connect(intervalNode, 0, 0)
+        effect.connect(intervalNode, 0, 1)
+        intervalNode.connect(gainNode)
         gainNode.connect(offlineContext.destination)
         source.start()
+        effect.start()
         return offlineContext.startRendering()
     }
 
@@ -363,25 +375,25 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         const wav = functions.encodeWAV(audioBuffer)
         let mp3 = await functions.convertToMP3(wav)
         if (coverImg) mp3 = await functions.writeSongCover(mp3, coverImg, audio)
-        functions.download(`${path.basename(audioName, path.extname(audioName))}_blockreverse.mp3`, mp3)
+        functions.download(`${path.basename(audioName, path.extname(audioName))}_pitchshift.mp3`, mp3)
     }
 
     const wav = async () => {
         const audioBuffer = await render()
         const wav = functions.encodeWAV(audioBuffer)
-        functions.download(`${path.basename(audioName, path.extname(audioName))}_blockreverse.wav`, wav)
+        functions.download(`${path.basename(audioName, path.extname(audioName))}_pitchshift.wav`, wav)
     }
 
     const ogg = async () => {
         const audioBuffer = await render()
         const ogg = await functions.encodeOGG(audioBuffer, coverImg, audio)
-        functions.download(`${path.basename(audioName, path.extname(audioName))}_blockreverse.ogg`, ogg)
+        functions.download(`${path.basename(audioName, path.extname(audioName))}_pitchshift.ogg`, ogg)
     }
 
     const flac = async () => {
         const audioBuffer = await render()
         const flac = await functions.encodeFLAC(audioBuffer)
-        functions.download(`${path.basename(audioName, path.extname(audioName))}_blockreverse.flac`, flac)
+        functions.download(`${path.basename(audioName, path.extname(audioName))}_pitchshift.flac`, flac)
     }
 
     useEffect(() => {
@@ -435,7 +447,7 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
             setSecondsProgress(seekTo)
             setSeekTo(null)
         }
-    }, [seekTo, audioReverse, audioSpeed, reverseActive, elapsedTime, startTime, duration])
+    }, [seekTo, audioReverse, noiseInterval, noiseDuration, noiseVolume, audioSpeed, preservesPitch, reverseActive, elapsedTime, startTime, duration])
 
     const updatePlay = async (alwaysPlay?: boolean) => {
         if (paused || alwaysPlay) {
@@ -455,30 +467,38 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         effectNode?.disconnect()
         setSourceNode(null)
         let audioBuffer = sourceNode.audioBuffer
+        let effectBuffer = effectNode?.audioBuffer
         if (audioReverse && !reverseActive) {
             audioBuffer = functions.reverseAudioBuffer(audioBuffer)
+            if (effectBuffer) effectBuffer = functions.reverseAudioBuffer(effectBuffer)
             setReverseActive(true)
         } else if (!audioReverse && reverseActive) {
             audioBuffer = functions.reverseAudioBuffer(audioBuffer)
+            if (effectBuffer) effectBuffer = functions.reverseAudioBuffer(effectBuffer)
             setReverseActive(false)
         }
         const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
         const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
+        const effect = createScheduledSoundTouchNode(audioContext, effectBuffer)
         source.parameters.get("pitch").value = pitchCorrect
         source.parameters.get("rate").value = audioSpeed
+        effect.parameters.get("pitch").value = pitchCorrect
+        effect.parameters.get("rate").value = audioSpeed
         await functions.timeout(100)
         source.loop = true
-        source.connect(gainNode)
+        effect.loop = true
+        source.connect(intervalNode, 0, 0)
+        effect.connect(intervalNode, 0, 1)
         source.start(0, offset)
+        effect.start(0, offset)
         setSourceNode(source)
-        setEffectNode(null)
+        setEffectNode(effect)
         setStartTime(audioContext.currentTime)
         setElapsedTime(offset)
         audioContext.resume()
     }
 
     const stop = () => {
-        if (!sourceNode) return
         sourceNode?.stop()
         sourceNode?.disconnect()
         effectNode?.stop()
@@ -600,16 +620,6 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         loadImage()
     }, [coverImg])
 
-    const getLFORate = () => {
-        if (lfoRate === 5) return "1/1"
-        if (lfoRate === 4) return "1/2"
-        if (lfoRate === 3) return "1/4"
-        if (lfoRate === 2) return "1/8"
-        if (lfoRate === 1) return "1/16"
-        if (lfoRate === 0) return "1/32"
-        return "1/16"
-    }
-
     return (
         <div className="bitcrush-image-component">
             <div className="bitcrush-upload-container">
@@ -672,9 +682,19 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
             </div>
             <div className="bitcrush-options-container">
                 <div className="bitcrush-row">
-                    <span className="bitcrush-text">LFO Rate: </span>
-                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setLFORate(value)} min={0} max={5} step={1} value={lfoRate} onAfterChange={() => setUpdateEffect(true)}/>
-                    <span className="bitcrush-text-mini">{getLFORate()}</span>
+                    <span className="bitcrush-text">Interval: </span>
+                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setNoiseInterval(value)} min={0} max={100000} step={1} value={noiseInterval}/>
+                    <span className="bitcrush-text-mini">{(noiseInterval/1000).toFixed(2)}</span>
+                </div>
+                <div className="bitcrush-row">
+                    <span className="bitcrush-text">Duration: </span>
+                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setNoiseDuration(value)} min={0} max={10000} step={1} value={noiseDuration}/>
+                    <span className="bitcrush-text-mini">{(noiseDuration/1000).toFixed(2)}</span>
+                </div>
+                <div className="bitcrush-row">
+                    <span className="bitcrush-text">Volume: </span>
+                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setNoiseVolume(value)} min={0} max={1} step={0.01} value={noiseVolume}/>
+                    <span className="bitcrush-text-mini">{noiseVolume}</span>
                 </div>
             </div>
             {audio ?
@@ -699,4 +719,4 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
     )
 }
 
-export default BlockReverse
+export default PinkNoise
