@@ -13,7 +13,7 @@ import checkbox from "../assets/icons/checkbox.png"
 import $3dPlaceHolder from "../assets/images/3d-placeholder.png"
 import * as THREE from "three"
 import {OrbitControls, OBJLoader, MTLLoader, FBXLoader, STLLoader, STLExporter, MMDLoader, MMDExporter} from "three-stdlib"
-import {SimplifyModifier} from "../structures/SimplifyModifier"
+import {SubdivisionModifier} from "../structures/SubdivisionModifier"
 import {OBJExporter} from "../structures/OBJExporter"
 import {GLTFLoader} from "../structures/GLTFLoader"
 import {GLTFExporter} from "../structures/GLTFExporter"
@@ -24,7 +24,7 @@ import "./styles/decimation.less"
 
 let id = null as any
 
-const Decimation: React.FunctionComponent= (props) => {
+const Subdivision: React.FunctionComponent= (props) => {
     const {enableDrag, setEnableDrag} = useContext(EnableDragContext)
     const {mobile, setMobile} = useContext(MobileContext)
     const {model, setModel} = useContext(ModelContext)
@@ -35,8 +35,7 @@ const Decimation: React.FunctionComponent= (props) => {
     const {siteHue, setSiteHue} = useContext(SiteHueContext)
     const {siteSaturation, setSiteSaturation} = useContext(SiteSaturationContext)
     const {siteLightness, setSiteLightness} = useContext(SiteLightnessContext)
-    const [polygonReduction, setPolygonReduction] = useState(0)
-    const [textureReduction, setTextureReduction] = useState(0)
+    const [subdivisions, setSubdivisions] = useState(0)
     const [wireframe, setWireframe] = useState(false)
     const [matcap, setMatcap] = useState(false)
     const [ambient, setAmbient] = useState(0.5)
@@ -63,6 +62,10 @@ const Decimation: React.FunctionComponent= (props) => {
 
     const getFilter2 = () => {
         return `hue-rotate(${siteHue - 189}deg) saturate(${siteSaturation}%) brightness(${siteLightness + 50}%)`
+    }
+
+    const wireColor = () => {
+        return functions.rotateColor("#4d5eff", siteHue, siteSaturation, siteLightness)
     }
 
     const loadModel = async (event: any) => {
@@ -236,7 +239,7 @@ const Decimation: React.FunctionComponent= (props) => {
             object3D.traverse((obj: any) => {
                 if (obj.isMesh) {
                     const geometry = new THREE.WireframeGeometry(obj.geometry)
-                    const material = new THREE.LineBasicMaterial({color: 0xf64dff})
+                    const material = new THREE.LineBasicMaterial({color: wireColor()})
                     const wireframe = new THREE.LineSegments(geometry, material)
                     wireframe.name = "wireframe"
                     object3D.add(wireframe)
@@ -323,46 +326,21 @@ const Decimation: React.FunctionComponent= (props) => {
         })
     }
 
-    const resizeMaterial = (material: any, percent: number) => {
-        material = material.clone()
-        const texture = material.map
-        if (!texture) return material
-        let width = texture.image.width
-        let height = texture.image.height
-
-        let canvas = document.createElement("canvas")
-        canvas.width = width * percent
-        canvas.height = height * percent
-
-        let ctx = canvas.getContext("2d")!
-        ctx.drawImage(texture.image, 0, 0, width, height, 0, 0, canvas.width, canvas.height)
-
-        const resized = new THREE.Texture(canvas)
-        resized.encoding = THREE.sRGBEncoding
-        resized.flipY = texture.flipY
-        resized.needsUpdate = true
-        material.map = resized
-        texture.dispose()
-        return material
-    }
-
-    const applyDecimation = async () => {
+    const applySubdivision = async () => {
         if (!scene || !object3D) return
-        let resizedMaterials = objMaterials.map((m: THREE.Material) => resizeMaterial(m, 1-(textureReduction/100)))
-        const modifier = new SimplifyModifier()
-        let i = 0
+        const modifier = new SubdivisionModifier(subdivisions)
         object3D.traverse(async (obj: any) => {
+            if (obj.name === "wireframe") object3D.remove(obj)
             if (obj.isMesh) {
-                const simplified = modifier.modify(obj.geometry, (polygonReduction/100))
-                obj.geometry = simplified
-                if (obj.material.length) {
-                    for (let j = 0; j < obj.material.length; j++) {
-                        obj.material[j] = resizedMaterials.find((m: THREE.Material) => m.name === obj.material[j].name)
-                    }
-                } else {
-                    obj.material = resizedMaterials[i]
+                const subdivided = modifier.modify(obj.geometry)
+                obj.geometry = subdivided
+                if (wireframe) {
+                    const wireGeometry = new THREE.WireframeGeometry(obj.geometry)
+                    const wireMaterial = new THREE.LineBasicMaterial({color: wireColor()})
+                    const wireframe = new THREE.LineSegments(wireGeometry, wireMaterial)
+                    wireframe.name = "wireframe"
+                    object3D.add(wireframe)
                 }
-                i++
             }
         })
     }
@@ -370,37 +348,37 @@ const Decimation: React.FunctionComponent= (props) => {
     useEffect(() => {
         const init = async () => {
             await drawModel()
-            applyDecimation()
+            applySubdivision()
         }
         if (model) init()
     }, [model, mtl, textures, textureNames])
 
     useEffect(() => {
         if (updateEffect) {
-            applyDecimation()
+            applySubdivision()
             setUpdateEffect(false)
         }
-    }, [scene, object3D, displayModel, objGeometries, objMaterials, polygonReduction, textureReduction, updateEffect])
+    }, [scene, object3D, displayModel, objGeometries, objMaterials, subdivisions, wireframe, updateEffect])
 
     useEffect(() => {
         setUpdateEffect(true)
-    }, [polygonReduction, textureReduction])
+    }, [subdivisions, wireframe])
 
     const reset = () => {
-        setPolygonReduction(0)
-        setTextureReduction(0)
+        setSubdivisions(0)
+        setWireframe(false)
     }
 
     useEffect(() => {
-        const savedPolygonReduction = localStorage.getItem("polygonReduction")
-        if (savedPolygonReduction) setPolygonReduction(Number(savedPolygonReduction))
-        const savedTextureReduction = localStorage.getItem("textureReduction")
-        if (savedTextureReduction) setTextureReduction(Number(savedTextureReduction))
+        const savedSubdivions = localStorage.getItem("subdivisions")
+        if (savedSubdivions) setSubdivisions(Number(savedSubdivions))
+        const savedWireframe = localStorage.getItem("wireframe")
+        if (savedWireframe) setWireframe(savedWireframe === "true")
     }, [])
 
     useEffect(() => {
-        localStorage.setItem("polygonReduction", String(polygonReduction))
-        localStorage.setItem("textureReduction", String(textureReduction))
+        localStorage.setItem("subdivisions", String(subdivisions))
+        localStorage.setItem("wireframe", String(wireframe))
     }, [])
 
     const obj = async () => {
@@ -451,19 +429,6 @@ const Decimation: React.FunctionComponent= (props) => {
     }
 
     const fbx = async () => {
-        /*
-        const ajs = await assimpModule
-        const glb = await gltfBuffer(true)
-        let fileList = new ajs.FileList()
-        fileList.AddFile("model.glb", new Uint8Array(glb))
-        let result = ajs.ConvertFileList(fileList, "fbx")
-        
-        if (!result.IsSuccess() || result.FileCount() == 0) {
-            return console.log(result.GetErrorCode())
-        }
-
-        let resultFile = result.GetFile(0)
-        console.log(resultFile)*/
     }
 
     const stl = () => {
@@ -529,14 +494,13 @@ const Decimation: React.FunctionComponent= (props) => {
             </div> : <img src={$3dPlaceHolder} className="model-cover"/>}
             <div className="decimation-options-container">
                 <div className="decimation-row">
-                    <span className="decimation-text">Polygon Reduction: </span>
-                    <Slider className="decimation-slider" trackClassName="decimation-slider-track" thumbClassName="decimation-slider-thumb" onChange={(value) => setPolygonReduction(value)} min={0} max={99} step={1} value={polygonReduction}/>
-                    <span className="decimation-text-mini">{polygonReduction}</span>
+                    <span className="decimation-text-mini" style={{width: "auto", fontSize: "17px"}}>Wireframe?</span>
+                    <img className="decimation-checkbox" src={wireframe ? checkboxChecked : checkbox} onClick={() => setWireframe((prev: boolean) => !prev)} style={{marginLeft: "5px"}}/>
                 </div>
                 <div className="decimation-row">
-                    <span className="decimation-text">Texture Reduction: </span>
-                    <Slider className="decimation-slider" trackClassName="decimation-slider-track" thumbClassName="decimation-slider-thumb" onChange={(value) => setTextureReduction(value)} min={0} max={99} step={1} value={textureReduction}/>
-                    <span className="decimation-text-mini">{textureReduction}</span>
+                    <span className="decimation-text">Subdivisions: </span>
+                    <Slider className="decimation-slider" trackClassName="decimation-slider-track" thumbClassName="decimation-slider-thumb" onChange={(value) => setSubdivisions(value)} min={0} max={7} step={1} value={subdivisions}/>
+                    <span className="decimation-text-mini">{subdivisions}</span>
                 </div>
             </div>
             {model ?
@@ -562,4 +526,4 @@ const Decimation: React.FunctionComponent= (props) => {
     )
 }
 
-export default Decimation
+export default Subdivision

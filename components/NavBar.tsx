@@ -34,6 +34,7 @@ import pitchshift from "../assets/icons/pitchshift.png"
 import blockreverse from "../assets/icons/blockreverse.png"
 import pinknoise from "../assets/icons/pinknoise.png"
 import decimation from "../assets/icons/decimation.png"
+import subdivision from "../assets/icons/subdivision.png"
 
 const NavBar: React.FunctionComponent = (props) => {
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
@@ -88,6 +89,7 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={blockreverse} onClick={() => setAttackMode("block reverse")}/>
                 <img className="navbar-item" src={pinknoise} onClick={() => setAttackMode("pink noise")}/>
                 <img className="navbar-item" src={decimation} onClick={() => setAttackMode("decimation")}/>
+                <img className="navbar-item" src={subdivision} onClick={() => setAttackMode("subdivision")}/>
             </div>
         </div>
     )

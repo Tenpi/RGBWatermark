@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useRef, useState, useReducer} from "react"
 import {useHistory} from "react-router-dom"
-import {ImageContext, ImageNameContext, ImagePathContext, AudioNameContext, AudioContext} from "../renderer"
+import {ImageContext, ImageNameContext, ImagePathContext, AudioNameContext, AudioContext, ModelContext, ModelNameContext, MTLContext,
+TexturesContext, TextureNamesContext} from "../renderer"
 import {HashLink as Link} from "react-router-hash-link"
 import functions from "../structures/Functions"
 import path from "path"
@@ -18,6 +19,11 @@ const DragAndDrop: React.FunctionComponent = (props) => {
     const {imagePath, setImagePath} = useContext(ImagePathContext)
     const {audio, setAudio} = useContext(AudioContext)
     const {audioName, setAudioName} = useContext(AudioNameContext)
+    const {model, setModel} = useContext(ModelContext)
+    const {mtl, setMTL} = useContext(MTLContext)
+    const {textures, setTextures} = useContext(TexturesContext)
+    const {textureNames, setTextureNames} = useContext(TextureNamesContext)
+    const {modelName, setModelName} = useContext(ModelNameContext)
     const [uploadHover, setUploadHover] = useState(false)
     const history = useHistory()
 
@@ -122,6 +128,72 @@ const DragAndDrop: React.FunctionComponent = (props) => {
         })
     }
 
+    const loadModel = async (files: any) => {
+        let textures = [] as string[]
+        let textureNames = [] as string[]
+        let hasModel = false
+        let hasMaterial = false
+        const fileReader = new FileReader()
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i]
+            await new Promise<void>((resolve) => {
+                fileReader.onloadend = async (f: any) => {
+                    let bytes = new Uint8Array(f.target.result)
+                    const result = fileType(bytes)?.[0] || {}
+                    const obj = path.extname(file.name) === ".obj"
+                    const mtl = path.extname(file.name) === ".mtl"
+                    const glb = path.extname(file.name) === ".glb"
+                    const gltf = path.extname(file.name) === ".gltf"
+                    const fbx = path.extname(file.name) === ".fbx"
+                    const dae = path.extname(file.name) === ".dae"
+                    const mmd = path.extname(file.name) === ".mmd"
+                    const stl = path.extname(file.name) === ".stl"
+                    const png = path.extname(file.name) === ".png"
+                    const jpg = path.extname(file.name) === ".jpg" || path.extname(file.name) === ".jpeg"
+                    if (glb) result.typename = "glb"
+                    if (gltf) result.typename = "gltf"
+                    if (fbx) result.typename = "fbx"
+                    if (obj) result.typename = "obj"
+                    if (mtl) result.typename = "mtl"
+                    if (png) result.typename = "png"
+                    if (jpg) result.typename = "jpg"
+                    if (stl) result.typename = "stl"
+                    if (dae) result.typename = "dae"
+                    if (mmd) result.typename = "mmd"
+                    if (obj || glb || gltf || fbx || stl || dae || mmd) {
+                        const blob = new Blob([bytes])
+                        const url = URL.createObjectURL(blob)
+                        const link = `${url}#.${result.typename}`
+                        setModel(link)
+                        setModelName(file.name.slice(0, 30))
+                        hasModel = true
+                    }
+                    if (mtl) {
+                        const blob = new Blob([bytes])
+                        const url = URL.createObjectURL(blob)
+                        const link = `${url}#.${result.typename}`
+                        setMTL(link)
+                        hasMaterial = true
+                    }
+                    if (png || jpg) {
+                        const blob = new Blob([bytes])
+                        const url = URL.createObjectURL(blob)
+                        const link = `${url}#.${result.typename}`
+                        textures.push(link)
+                        textureNames.push(path.basename(file.name, path.extname(file.name)))
+                        if (hasModel) hasMaterial = true
+                    }
+                    resolve()
+                }
+                fileReader.readAsArrayBuffer(file)
+            })
+        }
+        if (hasMaterial) {
+            setTextures(textures)
+            setTextureNames(textureNames)
+        }
+    }
+
     const uploadDrop = (event: React.DragEvent) => {
         event.preventDefault()
         setUploadHover(false)
@@ -129,6 +201,7 @@ const DragAndDrop: React.FunctionComponent = (props) => {
         if (!files?.[0]) return
         loadImage(files[0])
         loadAudio(files[0])
+        loadModel(files)
     }
 
     return (

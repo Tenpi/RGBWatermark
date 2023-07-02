@@ -239,6 +239,10 @@ const Footer: React.FunctionComponent = (props) => {
                 <div className="footer-row">
                     <span className="footer-text-2">Decimation reduces the amount of polygons and texture resolution while retaining the overall shape.</span>
                 </div> : null}
+                {attackMode === "subdivision" ?
+                <div className="footer-row">
+                    <span className="footer-text">Subdivision drastically increases the amount of vertices by subdividing the polygons.</span>
+                </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
                     <span className="footer-text-3">If you are using the watermarks with Glaze, it is better to add them before. If you want animation, download the ZIP file, glaze all the images, 

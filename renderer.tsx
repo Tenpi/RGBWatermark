@@ -35,6 +35,7 @@ import PitchShift from "./components/PitchShift"
 import BlockReverse from "./components/BlockReverse"
 import PinkNoise from "./components/PinkNoise"
 import Decimation from "./components/Decimation"
+import Subdivision from "./components/Subdivision"
 import "./index.less"
 
 export const MobileContext = React.createContext<any>(null)
@@ -250,6 +251,8 @@ const App = () => {
       return (<PinkNoise audioContext={audioContext}/>)
     } else if (attackMode === "decimation") {
       return (<Decimation/>)
+    } else if (attackMode === "subdivision") {
+      return (<Subdivision/>)
     }
   }
 
