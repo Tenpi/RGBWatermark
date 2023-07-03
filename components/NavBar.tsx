@@ -22,6 +22,8 @@ import inflation from "../assets/icons/inflation.png"
 import fence from "../assets/icons/fence.png"
 import crt from "../assets/icons/crt.png"
 import rgbsplit from "../assets/icons/rgbsplit.png"
+import apng from "../assets/icons/apng.png"
+import dissolve from "../assets/icons/dissolve.png"
 import adversarialnoise from "../assets/icons/adversarialnoise.png"
 import aiwatermark from "../assets/icons/aiwatermark.png"
 import steganography from "../assets/icons/steganography.png"
@@ -59,15 +61,17 @@ const NavBar: React.FunctionComponent = (props) => {
                 <img className="navbar-item" src={pixelshift} onClick={() => setAttackMode("pixel shift")}/>
                 <img className="navbar-item" src={highcontrast} onClick={() => setAttackMode("high contrast")}/>
                 <img className="navbar-item" src={pixelation} onClick={() => setAttackMode("pixelation")}/>
+                <img className="navbar-item" src={noise} onClick={() => setAttackMode("noise")}/>
             </div>
             <div className="navbar-row">
-                <img className="navbar-item" src={noise} onClick={() => setAttackMode("noise")}/>
                 <img className="navbar-item" src={edgeblur} onClick={() => setAttackMode("edge blur")}/>
                 <img className="navbar-item" src={sprinkles} onClick={() => setAttackMode("sprinkles")}/>
                 <img className="navbar-item" src={fence} onClick={() => setAttackMode("fence")}/>
                 <img className="navbar-item" src={adversarialnoise} onClick={() => setAttackMode("adversarial noise")}/>
                 <img className="navbar-item" src={crt} onClick={() => setAttackMode("crt")}/>
                 <img className="navbar-item" src={rgbsplit} onClick={() => setAttackMode("rgb split")}/>
+                <img className="navbar-item" src={apng} onClick={() => setAttackMode("apng")}/>
+                <img className="navbar-item" src={dissolve} onClick={() => setAttackMode("dissolve")}/>
             </div>
             <div className="navbar-row">
                 <img className="navbar-item" src={conversion} onClick={() => setAttackMode("conversion")}/>

@@ -36,6 +36,8 @@ import BlockReverse from "./components/BlockReverse"
 import PinkNoise from "./components/PinkNoise"
 import Decimation from "./components/Decimation"
 import Subdivision from "./components/Subdivision"
+import APNG from "./components/APNG"
+import Dissolve from "./components/Dissolve"
 import "./index.less"
 
 export const MobileContext = React.createContext<any>(null)
@@ -253,6 +255,10 @@ const App = () => {
       return (<Decimation/>)
     } else if (attackMode === "subdivision") {
       return (<Subdivision/>)
+    } else if (attackMode === "apng") {
+      return (<APNG/>)
+    } else if (attackMode === "dissolve") {
+      return (<Dissolve/>)
     }
   }
 

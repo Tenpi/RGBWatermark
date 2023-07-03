@@ -252,13 +252,7 @@ const Subdivision: React.FunctionComponent= (props) => {
         object3D.traverse((obj: any) => {
             if (obj.isMesh) {
                 objGeometries.push(obj.geometry)
-                if (obj.material.length) {
-                    for (let i = 0; i < obj.material.length; i++) {
-                        objMaterials.push(obj.material[i])
-                    }
-                } else {
-                    objMaterials.push(obj.material)
-                }
+                objMaterials.push(obj.material)
                 if (matcap) obj.material = matcapMaterial
             }
         })
@@ -328,19 +322,24 @@ const Subdivision: React.FunctionComponent= (props) => {
 
     const applySubdivision = async () => {
         if (!scene || !object3D) return
+        const matcapMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.5, metalness: 1.0, envMap: scene.environment})
         const modifier = new SubdivisionModifier(subdivisions)
+        let i = 0
         object3D.traverse(async (obj: any) => {
             if (obj.name === "wireframe") object3D.remove(obj)
             if (obj.isMesh) {
-                const subdivided = modifier.modify(obj.geometry)
+                const geometry = objGeometries[i]
+                const subdivided = modifier.modify(geometry)
                 obj.geometry = subdivided
                 if (wireframe) {
-                    const wireGeometry = new THREE.WireframeGeometry(obj.geometry)
+                    const wireGeometry = new THREE.WireframeGeometry(subdivided)
                     const wireMaterial = new THREE.LineBasicMaterial({color: wireColor()})
                     const wireframe = new THREE.LineSegments(wireGeometry, wireMaterial)
                     wireframe.name = "wireframe"
                     object3D.add(wireframe)
                 }
+                obj.material = matcap ? matcapMaterial : objMaterials[i]
+                i++
             }
         })
     }
@@ -358,15 +357,16 @@ const Subdivision: React.FunctionComponent= (props) => {
             applySubdivision()
             setUpdateEffect(false)
         }
-    }, [scene, object3D, displayModel, objGeometries, objMaterials, subdivisions, wireframe, updateEffect])
+    }, [scene, object3D, displayModel, objGeometries, objMaterials, subdivisions, wireframe, matcap, updateEffect])
 
     useEffect(() => {
         setUpdateEffect(true)
-    }, [subdivisions, wireframe])
+    }, [subdivisions, wireframe, matcap])
 
     const reset = () => {
         setSubdivisions(0)
         setWireframe(false)
+        setMatcap(false)
     }
 
     useEffect(() => {
@@ -374,14 +374,18 @@ const Subdivision: React.FunctionComponent= (props) => {
         if (savedSubdivions) setSubdivisions(Number(savedSubdivions))
         const savedWireframe = localStorage.getItem("wireframe")
         if (savedWireframe) setWireframe(savedWireframe === "true")
+        const savedMatcap = localStorage.getItem("matcap")
+        if (savedMatcap) setMatcap(savedMatcap === "true")
     }, [])
 
     useEffect(() => {
         localStorage.setItem("subdivisions", String(subdivisions))
         localStorage.setItem("wireframe", String(wireframe))
+        localStorage.setItem("matcap", String(matcap))
     }, [])
 
     const obj = async () => {
+        if (!object3D) return
         const exporter = new OBJExporter()
         const data = exporter.parse(object3D, path.basename(modelName, path.extname(modelName)))
         if (!data.mtl) {
@@ -415,6 +419,7 @@ const Subdivision: React.FunctionComponent= (props) => {
     }
 
     const glb = async () => {
+        if (!object3D) return
         const glb = await gltfBuffer(true)
         const blob = new Blob([new Uint8Array(glb as ArrayBuffer)])
         const url = URL.createObjectURL(blob)
@@ -422,16 +427,19 @@ const Subdivision: React.FunctionComponent= (props) => {
     }
 
     const gltf = async () => {
+        if (!object3D) return
         const gltf = await gltfBuffer()
-        const blob = new Blob([functions.jsonToArray(gltf)])
+        const blob = new Blob([JSON.stringify(gltf)])
         const url = URL.createObjectURL(blob)
         return functions.download(`${path.basename(modelName, path.extname(modelName))}_decimated.gltf`, url)
     }
 
     const fbx = async () => {
+        if (!object3D) return
     }
 
     const stl = () => {
+        if (!object3D) return
         const exporter = new STLExporter()
         const data = exporter.parse(object3D, {binary: true}) as DataView
         const blob = new Blob([new Uint8Array(data.buffer)])
@@ -440,6 +448,7 @@ const Subdivision: React.FunctionComponent= (props) => {
     }
 
     const mmd = () => {
+        if (!object3D) return
         const exporter = new MMDExporter()
         const data = exporter.parseVpd(object3D, true, true)
         const blob = new Blob([data!])
@@ -448,6 +457,7 @@ const Subdivision: React.FunctionComponent= (props) => {
     }
 
     const dae = async () => {
+        if (!object3D) return
         const exporter = new ColladaExporter()
         const collada = exporter.parse(object3D, () => null)!
         if (!collada.textures.length) {
@@ -495,7 +505,9 @@ const Subdivision: React.FunctionComponent= (props) => {
             <div className="decimation-options-container">
                 <div className="decimation-row">
                     <span className="decimation-text-mini" style={{width: "auto", fontSize: "17px"}}>Wireframe?</span>
-                    <img className="decimation-checkbox" src={wireframe ? checkboxChecked : checkbox} onClick={() => setWireframe((prev: boolean) => !prev)} style={{marginLeft: "5px"}}/>
+                    <img className="decimation-checkbox" src={wireframe ? checkboxChecked : checkbox} onClick={() => setWireframe((prev: boolean) => !prev)} style={{marginLeft: "5px", marginRight: "10px"}}/>
+                    <span className="decimation-text-mini" style={{width: "auto", fontSize: "17px"}}>Matcap?</span>
+                    <img className="decimation-checkbox" src={matcap ? checkboxChecked : checkbox} onClick={() => setMatcap((prev: boolean) => !prev)} style={{marginLeft: "5px"}}/>
                 </div>
                 <div className="decimation-row">
                     <span className="decimation-text">Subdivisions: </span>
@@ -503,7 +515,6 @@ const Subdivision: React.FunctionComponent= (props) => {
                     <span className="decimation-text-mini">{subdivisions}</span>
                 </div>
             </div>
-            {model ?
             <div className="decimation-image-container">
                 <div className="decimation-image-buttons-container">
                     <button className="decimation-image-button" onClick={obj}>OBJ</button>
@@ -512,7 +523,7 @@ const Subdivision: React.FunctionComponent= (props) => {
                     <button className="decimation-image-button" onClick={dae}>DAE</button>
                     <button className="decimation-image-button" onClick={stl}>STL</button>
                 </div>
-            </div> : null}
+            </div>
             <div className="decimation-options-container">
                 <div className="decimation-row">
                     <button className="decimation-button" onClick={reset} style={{padding: "0px 5px", marginTop: "7px"}}>

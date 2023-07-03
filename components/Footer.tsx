@@ -243,6 +243,14 @@ const Footer: React.FunctionComponent = (props) => {
                 <div className="footer-row">
                     <span className="footer-text">Subdivision drastically increases the amount of vertices by subdividing the polygons.</span>
                 </div> : null}
+                {attackMode === "apng" ?
+                <div className="footer-row">
+                    <span className="footer-text-5">APNG is a lesser known extension to png that supports animations. We will create an animation with your art as the last frame.</span>
+                </div> : null}
+                {attackMode === "dissolve" ?
+                <div className="footer-row">
+                    <span className="footer-text-3">Dissolve deletes random pixels in the image and fills it with color, alpha, or noise.</span>
+                </div> : null}
                 {attackMode === "rainbow watermarks" ?
                 <div className="footer-column">
                     <span className="footer-text-3">If you are using the watermarks with Glaze, it is better to add them before. If you want animation, download the ZIP file, glaze all the images, 

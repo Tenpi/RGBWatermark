@@ -65,6 +65,10 @@ const Decimation: React.FunctionComponent= (props) => {
         return `hue-rotate(${siteHue - 189}deg) saturate(${siteSaturation}%) brightness(${siteLightness + 50}%)`
     }
 
+    const wireColor = () => {
+        return functions.rotateColor("#4d5eff", siteHue, siteSaturation, siteLightness)
+    }
+
     const loadModel = async (event: any) => {
         const files = event.target.files 
         let textures = [] as string[]
@@ -249,13 +253,7 @@ const Decimation: React.FunctionComponent= (props) => {
         object3D.traverse((obj: any) => {
             if (obj.isMesh) {
                 objGeometries.push(obj.geometry)
-                if (obj.material.length) {
-                    for (let i = 0; i < obj.material.length; i++) {
-                        objMaterials.push(obj.material[i])
-                    }
-                } else {
-                    objMaterials.push(obj.material)
-                }
+                objMaterials.push(obj.material)
                 if (matcap) obj.material = matcapMaterial
             }
         })
@@ -323,7 +321,7 @@ const Decimation: React.FunctionComponent= (props) => {
         })
     }
 
-    const resizeMaterial = (material: any, percent: number) => {
+    const resizeMaterial = (material: THREE.SpriteMaterial, percent: number) => {
         material = material.clone()
         const texture = material.map
         if (!texture) return material
@@ -337,7 +335,9 @@ const Decimation: React.FunctionComponent= (props) => {
         let ctx = canvas.getContext("2d")!
         ctx.drawImage(texture.image, 0, 0, width, height, 0, 0, canvas.width, canvas.height)
 
-        const resized = new THREE.Texture(canvas)
+        const img = new Image()
+        img.src = canvas.toDataURL("image/png")
+        const resized = new THREE.Texture(img)
         resized.encoding = THREE.sRGBEncoding
         resized.flipY = texture.flipY
         resized.needsUpdate = true
@@ -348,20 +348,25 @@ const Decimation: React.FunctionComponent= (props) => {
 
     const applyDecimation = async () => {
         if (!scene || !object3D) return
-        let resizedMaterials = objMaterials.map((m: THREE.Material) => resizeMaterial(m, 1-(textureReduction/100)))
+        const matcapMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.5, metalness: 1.0, envMap: scene.environment})
+        let resizedMaterials = objMaterials.map((m: THREE.SpriteMaterial | THREE.SpriteMaterial[]) => Array.isArray(m) ? 
+        m.map((e) => resizeMaterial(e, 1-(textureReduction/100))) : resizeMaterial(m, 1-(textureReduction/100)))
         const modifier = new SimplifyModifier()
         let i = 0
         object3D.traverse(async (obj: any) => {
+            if (obj.name === "wireframe") object3D.remove(obj)
             if (obj.isMesh) {
-                const simplified = modifier.modify(obj.geometry, (polygonReduction/100))
+                const geometry = objGeometries[i]
+                const simplified = modifier.modify(geometry, (polygonReduction/100))
                 obj.geometry = simplified
-                if (obj.material.length) {
-                    for (let j = 0; j < obj.material.length; j++) {
-                        obj.material[j] = resizedMaterials.find((m: THREE.Material) => m.name === obj.material[j].name)
-                    }
-                } else {
-                    obj.material = resizedMaterials[i]
+                if (wireframe) {
+                    const wireGeometry = new THREE.WireframeGeometry(simplified)
+                    const wireMaterial = new THREE.LineBasicMaterial({color: wireColor()})
+                    const wireframe = new THREE.LineSegments(wireGeometry, wireMaterial)
+                    wireframe.name = "wireframe"
+                    object3D.add(wireframe)
                 }
+                obj.material = matcap ? matcapMaterial : resizedMaterials[i]
                 i++
             }
         })
@@ -380,15 +385,17 @@ const Decimation: React.FunctionComponent= (props) => {
             applyDecimation()
             setUpdateEffect(false)
         }
-    }, [scene, object3D, displayModel, objGeometries, objMaterials, polygonReduction, textureReduction, updateEffect])
+    }, [scene, object3D, displayModel, objGeometries, objMaterials, polygonReduction, textureReduction, wireframe, matcap, updateEffect])
 
     useEffect(() => {
         setUpdateEffect(true)
-    }, [polygonReduction, textureReduction])
+    }, [polygonReduction, textureReduction, wireframe, matcap])
 
     const reset = () => {
         setPolygonReduction(0)
         setTextureReduction(0)
+        setWireframe(false)
+        setMatcap(false)
     }
 
     useEffect(() => {
@@ -396,14 +403,21 @@ const Decimation: React.FunctionComponent= (props) => {
         if (savedPolygonReduction) setPolygonReduction(Number(savedPolygonReduction))
         const savedTextureReduction = localStorage.getItem("textureReduction")
         if (savedTextureReduction) setTextureReduction(Number(savedTextureReduction))
+        const savedWireframe = localStorage.getItem("wireframe")
+        if (savedWireframe) setWireframe(savedWireframe === "true")
+        const savedMatcap = localStorage.getItem("matcap")
+        if (savedMatcap) setMatcap(savedMatcap === "true")
     }, [])
 
     useEffect(() => {
         localStorage.setItem("polygonReduction", String(polygonReduction))
         localStorage.setItem("textureReduction", String(textureReduction))
+        localStorage.setItem("wireframe", String(wireframe))
+        localStorage.setItem("matcap", String(matcap))
     }, [])
 
     const obj = async () => {
+        if (!object3D) return
         const exporter = new OBJExporter()
         const data = exporter.parse(object3D, path.basename(modelName, path.extname(modelName)))
         if (!data.mtl) {
@@ -437,6 +451,7 @@ const Decimation: React.FunctionComponent= (props) => {
     }
 
     const glb = async () => {
+        if (!object3D) return
         const glb = await gltfBuffer(true)
         const blob = new Blob([new Uint8Array(glb as ArrayBuffer)])
         const url = URL.createObjectURL(blob)
@@ -444,13 +459,15 @@ const Decimation: React.FunctionComponent= (props) => {
     }
 
     const gltf = async () => {
+        if (!object3D) return
         const gltf = await gltfBuffer()
-        const blob = new Blob([functions.jsonToArray(gltf)])
+        const blob = new Blob([JSON.stringify(gltf)])
         const url = URL.createObjectURL(blob)
         return functions.download(`${path.basename(modelName, path.extname(modelName))}_decimated.gltf`, url)
     }
 
     const fbx = async () => {
+        if (!object3D) return
         /*
         const ajs = await assimpModule
         const glb = await gltfBuffer(true)
@@ -467,6 +484,7 @@ const Decimation: React.FunctionComponent= (props) => {
     }
 
     const stl = () => {
+        if (!object3D) return
         const exporter = new STLExporter()
         const data = exporter.parse(object3D, {binary: true}) as DataView
         const blob = new Blob([new Uint8Array(data.buffer)])
@@ -475,6 +493,7 @@ const Decimation: React.FunctionComponent= (props) => {
     }
 
     const mmd = () => {
+        if (!object3D) return
         const exporter = new MMDExporter()
         const data = exporter.parseVpd(object3D, true, true)
         const blob = new Blob([data!])
@@ -483,6 +502,7 @@ const Decimation: React.FunctionComponent= (props) => {
     }
 
     const dae = async () => {
+        if (!object3D) return
         const exporter = new ColladaExporter()
         const collada = exporter.parse(object3D, () => null)!
         if (!collada.textures.length) {
@@ -529,6 +549,12 @@ const Decimation: React.FunctionComponent= (props) => {
             </div> : <img src={$3dPlaceHolder} className="model-cover"/>}
             <div className="decimation-options-container">
                 <div className="decimation-row">
+                    <span className="decimation-text-mini" style={{width: "auto", fontSize: "17px"}}>Wireframe?</span>
+                    <img className="decimation-checkbox" src={wireframe ? checkboxChecked : checkbox} onClick={() => setWireframe((prev: boolean) => !prev)} style={{marginLeft: "5px", marginRight: "10px"}}/>
+                    <span className="decimation-text-mini" style={{width: "auto", fontSize: "17px"}}>Matcap?</span>
+                    <img className="decimation-checkbox" src={matcap ? checkboxChecked : checkbox} onClick={() => setMatcap((prev: boolean) => !prev)} style={{marginLeft: "5px"}}/>
+                </div>
+                <div className="decimation-row">
                     <span className="decimation-text">Polygon Reduction: </span>
                     <Slider className="decimation-slider" trackClassName="decimation-slider-track" thumbClassName="decimation-slider-thumb" onChange={(value) => setPolygonReduction(value)} min={0} max={99} step={1} value={polygonReduction}/>
                     <span className="decimation-text-mini">{polygonReduction}</span>
@@ -539,7 +565,6 @@ const Decimation: React.FunctionComponent= (props) => {
                     <span className="decimation-text-mini">{textureReduction}</span>
                 </div>
             </div>
-            {model ?
             <div className="decimation-image-container">
                 <div className="decimation-image-buttons-container">
                     <button className="decimation-image-button" onClick={obj}>OBJ</button>
@@ -548,7 +573,7 @@ const Decimation: React.FunctionComponent= (props) => {
                     <button className="decimation-image-button" onClick={dae}>DAE</button>
                     <button className="decimation-image-button" onClick={stl}>STL</button>
                 </div>
-            </div> : null}
+            </div>
             <div className="decimation-options-container">
                 <div className="decimation-row">
                     <button className="decimation-button" onClick={reset} style={{padding: "0px 5px", marginTop: "7px"}}>
