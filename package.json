@@ -1,6 +1,6 @@
 {
   "name": "rgbwatermark",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Protects your art against AI/machine learning theft with a customizable rainbow watermark.",
   "main": "dist/main.js",
   "scripts": {
