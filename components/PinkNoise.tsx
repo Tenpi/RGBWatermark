@@ -220,7 +220,7 @@ const PinkNoise: React.FunctionComponent<Props> = (props) => {
         source.parameters.get("rate").value = audioSpeed
         effect.parameters.get("pitch").value = pitchCorrect
         effect.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
+        await functions.timeout(300)
         await audioContext.audioWorklet.addModule("./interval.js")
         intervalNode?.disconnect()
         intervalNode = new AudioWorkletNode(audioContext, "interval-processor", {numberOfInputs: 2, outputChannelCount: [2]})
@@ -355,7 +355,7 @@ const PinkNoise: React.FunctionComponent<Props> = (props) => {
         source.parameters.get("rate").value = audioSpeed
         effect.parameters.get("pitch").value = pitchCorrect
         effect.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
+        await functions.timeout(300)
         await offlineContext.audioWorklet.addModule("./interval.js")
         const intervalNode = new AudioWorkletNode(offlineContext, "interval-processor", {numberOfInputs: 2, outputChannelCount: [2]}) as any
         intervalNode.parameters.get("interval").value = noiseInterval
@@ -484,7 +484,7 @@ const PinkNoise: React.FunctionComponent<Props> = (props) => {
         source.parameters.get("rate").value = audioSpeed
         effect.parameters.get("pitch").value = pitchCorrect
         effect.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
+        await functions.timeout(300)
         source.loop = true
         effect.loop = true
         source.connect(intervalNode, 0, 0)

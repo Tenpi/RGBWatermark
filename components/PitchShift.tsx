@@ -38,6 +38,7 @@ interface Props {
 
 let gainNode = null as any
 let lfoNode = null as any
+let highpassFilterNode = null as any
 
 const PitchShift: React.FunctionComponent<Props> = (props) => {
     const {audio, setAudio} = useContext(AudioContext)
@@ -51,6 +52,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
     const [lfoMode, setLFOMode] = useState(false)
     const [lfoRate, setLFORate] = useState(1)
     const [lfoShape, setLFOShape] = useState("square")
+    const [highpassCutoff, setHighpassCutoff] = useState(0)
     const [restartFlag, setRestartFlag] = useState(false)
     const {sourceNode, setSourceNode} = useContext(SourceNodeContext)
     const {effectNode, setEffectNode} = useContext(EffectNodeContext)
@@ -186,6 +188,11 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             gainNode?.disconnect()
             gainNode = audioContext.createGain()
             gainNode.gain.value = volume 
+            highpassFilterNode?.disconnect()
+            highpassFilterNode = audioContext.createBiquadFilter()
+            highpassFilterNode.type = "highpass"
+            highpassFilterNode.frequency.value = highpassCutoff
+            highpassFilterNode.Q.value = 2
             await audioContext.audioWorklet.addModule("./soundtouch.js")
             sourceNode?.disconnect()
             effectNode?.disconnect()
@@ -200,7 +207,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             effect.parameters.get("pitch").value = pitchCorrect
             effect.parameters.get("tempo").value = audioRate
             effect.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
+            await functions.timeout(300)
             await audioContext.audioWorklet.addModule("./lfo.js")
             lfoNode?.disconnect()
             lfoNode = new AudioWorkletNode(audioContext, "lfo-processor", {numberOfInputs: 2, outputChannelCount: [2]})
@@ -209,7 +216,8 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             lfoNode.port.postMessage({lfoShape})
             source.connect(lfoNode, 0, 0)
             effect.connect(lfoNode, 0, 1)
-            lfoNode.connect(gainNode)
+            lfoNode.connect(highpassFilterNode)
+            highpassFilterNode.connect(gainNode)
             gainNode.connect(audioContext.destination)
             source.start(0, offset)
             effect.start(0, offset)
@@ -224,6 +232,11 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             gainNode?.disconnect()
             gainNode = audioContext.createGain()
             gainNode.gain.value = volume
+            highpassFilterNode?.disconnect()
+            highpassFilterNode = audioContext.createBiquadFilter()
+            highpassFilterNode.type = "highpass"
+            highpassFilterNode.frequency.value = highpassCutoff
+            highpassFilterNode.Q.value = 2
             await audioContext.audioWorklet.addModule("./soundtouch.js")
             sourceNode?.disconnect()
             effectNode?.disconnect()
@@ -232,8 +245,9 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
             source.parameters.get("tempo").value = audioRate
             source.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
-            source.connect(gainNode)
+            await functions.timeout(300)
+            source.connect(highpassFilterNode)
+            highpassFilterNode.connect(gainNode)
             gainNode.connect(audioContext.destination)
             source.start(0, offset)
             setSourceNode(source)
@@ -274,8 +288,12 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             lfoNode.parameters.get("lfoRate").value = lfoRate
             lfoNode.port.postMessage({lfoShape})
         }
+
+        if (highpassFilterNode) {
+            highpassFilterNode.frequency.value = highpassCutoff
+        }
         setDuration(originalDuration / audioSpeed / audioRate)
-    }, [pitchShift, audioRate, audioSpeed, preservesPitch, lfoMode, lfoRate, lfoShape, originalDuration])
+    }, [pitchShift, audioRate, audioSpeed, preservesPitch, highpassCutoff, lfoMode, lfoRate, lfoShape, originalDuration])
 
     useEffect(() => {
         if (updateEffect) {
@@ -287,7 +305,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             }
             setUpdateEffect(false)
         }
-    }, [sourceNode, effectNode, pitchShift, audioRate, startTime, elapsedTime, duration, audioReverse, audioSpeed, preservesPitch, updateEffect, lfoMode, lfoRate, lfoShape, restartFlag])
+    }, [sourceNode, effectNode, pitchShift, audioRate, startTime, elapsedTime, duration, audioReverse, audioSpeed, preservesPitch, highpassCutoff, updateEffect, lfoMode, lfoRate, lfoShape, restartFlag])
 
     useEffect(() => {
         if (gainNode) {
@@ -307,6 +325,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         setLFORate(1)
         setLFOMode(false)
         setLFOShape("square")
+        setHighpassCutoff(0)
     }
 
     useEffect(() => {
@@ -326,6 +345,8 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         if (savedPreviousVolume) setPreviousVolume(Number(savedPreviousVolume))
         const savedPreservesPitch = localStorage.getItem("preservesPitch")
         if (savedPreservesPitch) setPreservesPitch(Number(savedPreservesPitch))
+        const savedPitchShiftHighpassCutoff = localStorage.getItem("pitchShiftHighpassCutoff")
+        if (savedPitchShiftHighpassCutoff) setHighpassCutoff(Number(savedPitchShiftHighpassCutoff))
         setTimeout(() => {
             setRestartFlag(true)
             setUpdateEffect(true)
@@ -344,7 +365,8 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
         localStorage.setItem("volume", String(volume))
         localStorage.setItem("previousVolume", String(volume))
         localStorage.setItem("preservesPitch", String(preservesPitch))
-    }, [volume, previousVolume, preservesPitch, pitchShift, audioRate, lfoRate, lfoMode, lfoShape])
+        localStorage.setItem("pitchShiftHighpassCutoff", String(highpassCutoff))
+    }, [volume, previousVolume, preservesPitch, pitchShift, audioRate, lfoRate, lfoMode, lfoShape, highpassCutoff])
 
     const render = async () => {
         const arrayBuffer = await fetch(audio).then((r) => r.arrayBuffer())
@@ -360,6 +382,10 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             const {bpm} = await functions.getBPM(audioBuffer)
             const gainNode = offlineContext.createGain()
             gainNode.gain.value = 1
+            const highpassFilterNode = offlineContext.createBiquadFilter()
+            highpassFilterNode.type = "highpass"
+            highpassFilterNode.frequency.value = highpassCutoff
+            highpassFilterNode.Q.value = 2
             const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             await offlineContext.audioWorklet.addModule("./soundtouch.js")
             const source = createScheduledSoundTouchNode(offlineContext, audioBuffer)
@@ -372,14 +398,15 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             effect.parameters.get("pitch").value = pitchCorrect
             effect.parameters.get("tempo").value = audioRate
             effect.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
+            await functions.timeout(300)
             await offlineContext.audioWorklet.addModule("./lfo.js")
             const lfoNode = new AudioWorkletNode(offlineContext, "lfo-processor", {numberOfInputs: 2, outputChannelCount: [2]}) as any
             lfoNode.parameters.get("bpm").value = bpm
             lfoNode.parameters.get("lfoRate").value = lfoRate
             source.connect(lfoNode, 0, 0)
             effect.connect(lfoNode, 0, 1)
-            lfoNode.connect(gainNode)
+            lfoNode.connect(highpassFilterNode)
+            highpassFilterNode.connect(gainNode)
             gainNode.connect(offlineContext.destination)
             source.start()
             effect.start()
@@ -388,14 +415,19 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             const pitchCorrect = preservesPitch ? 1 / audioSpeed : 1
             const gainNode = offlineContext.createGain()
             gainNode.gain.value = volume
+            const highpassFilterNode = offlineContext.createBiquadFilter()
+            highpassFilterNode.type = "highpass"
+            highpassFilterNode.frequency.value = highpassCutoff
+            highpassFilterNode.Q.value = 2
             await offlineContext.audioWorklet.addModule("./soundtouch.js")
             const source = createScheduledSoundTouchNode(offlineContext, audioBuffer)
             source.loop = true
             source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
             source.parameters.get("tempo").value = audioRate
             source.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
-            source.connect(gainNode)
+            await functions.timeout(300)
+            source.connect(highpassFilterNode)
+            highpassFilterNode.connect(gainNode)
             gainNode.connect(offlineContext.destination)
             source.start()
             rendered = await offlineContext.startRendering()
@@ -520,7 +552,7 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             effect.parameters.get("pitch").value = pitchCorrect
             effect.parameters.get("tempo").value = audioRate
             effect.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
+            await functions.timeout(300)
             source.loop = true
             effect.loop = true
             source.connect(lfoNode, 0, 0)
@@ -534,9 +566,9 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
             source.parameters.get("pitch").value = functions.semitonesToScale(pitchShift) * pitchCorrect
             source.parameters.get("tempo").value = audioRate
             source.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
+            await functions.timeout(300)
             source.loop = true
-            source.connect(gainNode)
+            source.connect(highpassFilterNode)
             source.start(0, offset)
             setSourceNode(source)
             setEffectNode(null)
@@ -769,6 +801,11 @@ const PitchShift: React.FunctionComponent<Props> = (props) => {
                     <span className="bitcrush-text">Audio Rate: </span>
                     <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setAudioRate(value)} min={0.5} max={2} step={0.05} value={audioRate}/>
                     <span className="bitcrush-text-mini">{audioRate}</span>
+                </div>
+                <div className="bitcrush-row">
+                    <span className="bitcrush-text">High Pass: </span>
+                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setHighpassCutoff(value)} min={0} max={5000} step={1} value={highpassCutoff}/>
+                    <span className="bitcrush-text-mini">{highpassCutoff}</span>
                 </div>
             </div>
             {audio ?

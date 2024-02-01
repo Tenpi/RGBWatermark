@@ -47,7 +47,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
     const {siteLightness, setSiteLightness} = useContext(SiteLightnessContext)
     const {attackMode, setAttackMode} = useContext(AttackModeContext)
     const [bitDepth, setBitDepth] = useState(32)
-    const [sampleRate, setSampleRate] = useState(44100)
+    const [sampleRate, setSampleRate] = useState(20000)
     const [lowpassCutoff, setLowpassCutoff] = useState(44100)
     const [downsample, setDownsample] = useState(false)
     const {sourceNode, setSourceNode} = useContext(SourceNodeContext)
@@ -230,7 +230,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             source.parameters.get("pitch").value = pitchCorrect
             source.parameters.get("rate").value = audioSpeed
             source.loop = true
-            await functions.timeout(100)
+            await functions.timeout(300)
             source.connect(lowpassFilterNode)
             lowpassFilterNode.connect(gainNode)
             gainNode.connect(audioContext.destination)
@@ -262,7 +262,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             source.parameters.get("rate").value = audioSpeed
             source.parameters.get("pitch").value = pitchCorrect
             source.loop = true
-            await functions.timeout(100)
+            await functions.timeout(300)
             source.connect(bitcrusherNode)
             bitcrusherNode.connect(lowpassFilterNode)
             lowpassFilterNode.connect(gainNode)
@@ -332,7 +332,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
     const reset = () => {
         setBitDepth(32)
         setSampleRate(44100)
-        setLowpassCutoff(22050)
+        setLowpassCutoff(20000)
         setDownsample(false)
     }
 
@@ -409,7 +409,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             sourceNode.parameters.get("pitch").value = pitchCorrect
             sourceNode.loop = true
             sourceNode.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
+            await functions.timeout(300)
             sourceNode.connect(lowpassFilterNode)
             lowpassFilterNode.connect(offlineContext.destination)
             sourceNode.start()
@@ -429,7 +429,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
             sourceNode.parameters.get("pitch").value = pitchCorrect
             sourceNode.loop = true
             sourceNode.parameters.get("rate").value = audioSpeed
-            await functions.timeout(100)
+            await functions.timeout(300)
             sourceNode.connect(bitcrusherNode)
             bitcrusherNode.connect(lowpassFilterNode)
             lowpassFilterNode.connect(offlineContext.destination)
@@ -548,7 +548,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
         source.loop = true
         source.parameters.get("rate").value = audioSpeed
         source.parameters.get("pitch").value = pitchCorrect
-        await functions.timeout(100)
+        await functions.timeout(300)
         if (downsample) {
             source.connect(lowpassFilterNode)
         } else {
@@ -759,7 +759,7 @@ const Bitcrush: React.FunctionComponent<Props> = (props) => {
                 </div>
                 <div className="bitcrush-row">
                     <span className="bitcrush-text">Low Pass: </span>
-                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setLowpassCutoff(value)} min={10} max={22050} step={1} value={lowpassCutoff}/>
+                    <Slider className="bitcrush-slider" trackClassName="bitcrush-slider-track" thumbClassName="bitcrush-slider-thumb" onChange={(value) => setLowpassCutoff(value)} min={10} max={20000} step={1} value={lowpassCutoff}/>
                     <span className="bitcrush-text-mini">{lowpassCutoff}</span>
                 </div>
                 <div className="bitcrush-row">

@@ -244,7 +244,7 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         const source = createScheduledSoundTouchNode(audioContext, effectBuffer)
         source.parameters.get("pitch").value = pitchCorrect
         source.loop = true
-        await functions.timeout(100)
+        await functions.timeout(300)
         source.connect(gainNode)
         gainNode.connect(audioContext.destination)
         source.start()
@@ -351,7 +351,7 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         const source = createScheduledSoundTouchNode(offlineContext, effectBuffer)
         source.parameters.get("pitch").value = pitchCorrect
         source.loop = true
-        await functions.timeout(100)
+        await functions.timeout(300)
         source.connect(gainNode)
         gainNode.connect(offlineContext.destination)
         source.start()
@@ -466,7 +466,7 @@ const BlockReverse: React.FunctionComponent<Props> = (props) => {
         const source = createScheduledSoundTouchNode(audioContext, audioBuffer)
         source.parameters.get("pitch").value = pitchCorrect
         source.parameters.get("rate").value = audioSpeed
-        await functions.timeout(100)
+        await functions.timeout(300)
         source.loop = true
         source.connect(gainNode)
         source.start(0, offset)
